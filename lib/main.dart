@@ -5,17 +5,16 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
-import 'constants/strings.dart';
-import 'flavors/app_flavor.dart';
 import 'my_app.dart';
 
 /// Try using const constructors as much as possible!
 
 Future<void> main() async {
-  FlavorConfig.setFlavor(AppFlavor.prod);
   await bootstrap();
 }
 
@@ -36,6 +35,25 @@ Future<void> bootstrap() async {
     /// You can also use a custom implementation if needed
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
+
+  // .env 파일 로드
+  await dotenv.load();
+
+  await FlutterNaverMap().init(
+      clientId: dotenv.env['NAVER_MAPS_CLIENT_KEY'],
+      onAuthFailed: (ex) {
+        switch (ex) {
+          case NQuotaExceededException(:final message):
+            debugPrint("사용량 초과 (message: $message)");
+            break;
+          case NUnauthorizedClientException() ||
+          NClientUnspecifiedException() ||
+          NAnotherAuthFailedException():
+            debugPrint("인증 실패: $ex");
+            break;
+        }
+      });
+
 
   runApp(
     const ProviderScope(
