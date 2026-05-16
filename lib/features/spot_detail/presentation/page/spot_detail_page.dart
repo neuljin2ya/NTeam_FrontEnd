@@ -144,7 +144,7 @@ class _DetailPanel extends StatelessWidget {
               // TODO: 영상 상세 화면 연결.
             },
             onAddTap: () {
-              // TODO: 영상 업로드/추가 화면 연결.
+              context.push(SGRoute.uploadVideo.route);
             },
           ),
         ],

@@ -10,6 +10,7 @@ import '../features/load/presentation/page/load_page.dart';
 import '../features/login/presentation/page/login_page.dart';
 import '../features/spot_detail/presentation/page/spot_detail_page.dart';
 import '../features/spotdetail_modal/presentation/page/spot_detail_review_page.dart';
+import '../features/upload_video/presentation/page/upload_video_page.dart';
 
 part 'app_router.g.dart';
 
@@ -20,6 +21,7 @@ enum SGRoute {
   login,
   spotDetail,
   spotDetailReview,
+  uploadVideo,
   register,
   forgotPassword,
   profile,
@@ -63,6 +65,11 @@ GoRouter goRouter(Ref ref) => GoRouter(
 
             return SpotDetailReviewPage(selectedStatusIds: selectedStatusIds);
           },
+        ),
+        GoRoute(
+          path: SGRoute.uploadVideo.route,
+          builder: (BuildContext context, GoRouterState state) =>
+              const UploadVideoPage(),
         ),
         GoRoute(
           path: SGRoute.dev.route,
