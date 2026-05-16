@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../dev/dev_page.dart';
+import '../features/home/presentation/page/home_page.dart';
 import '../features/load/presentation/page/load_page.dart';
 
 part 'app_router.g.dart';
@@ -31,6 +32,10 @@ GoRouter goRouter(Ref ref) => GoRouter(
     GoRoute(
       path: SGRoute.load.route,
       builder: (BuildContext context, GoRouterState state) => const LoadPage(),
+    ),
+    GoRoute(
+      path: SGRoute.home.route,
+      builder: (BuildContext context, GoRouterState state) => const HomePage(),
     ),
     GoRoute(path: SGRoute.dev.route, builder: (BuildContext context, GoRouterState state) => const DevPage()),
   ],

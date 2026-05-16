@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../data/providers/naver_maps_providers.dart';
-import '../../../domain/maps/entity/map_location.dart';
-import '../../../domain/maps/entity/search_locations_query.dart';
-import '../../../domain/maps/exception/maps_exception.dart';
+import '../../../../data/providers/naver_maps_providers.dart';
+import '../../../../domain/maps/entity/map_location.dart';
+import '../../../../domain/maps/entity/search_locations_query.dart';
+import '../../../../domain/maps/exception/maps_exception.dart';
 import 'map_location_picker_ui_model.dart';
 
 part 'map_location_picker_view_model.g.dart';
