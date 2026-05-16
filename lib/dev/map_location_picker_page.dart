@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/maps/entity/map_location.dart';
 import 'map_location_extensions.dart';
-import 'presentation/viewmodel/map_location_picker_ui_model.dart';
-import 'presentation/viewmodel/map_location_picker_view_model.dart';
+import '../features/home/presentation/viewmodel/map_location_picker_ui_model.dart';
+import '../features/home/presentation/viewmodel/map_location_picker_view_model.dart';
 
 /// 주소·장소명 검색 또는 지도 드래그로 위치를 선택하는 Dev 화면.
 class MapLocationPickerPage extends ConsumerStatefulWidget {

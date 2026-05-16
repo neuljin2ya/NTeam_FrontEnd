@@ -28,7 +28,7 @@ class _LoadPageState extends State<LoadPage> {
     if (!mounted) {
       return;
     }
-    context.go(SGRoute.dev.route);
+    context.go(SGRoute.home.route);
   }
 
   @override

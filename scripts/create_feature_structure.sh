@@ -43,8 +43,8 @@ Usage:
   create_feature_structure.sh --help
 
 Options:
-  --with-test    Also create test/features/<name>/... (default: on for feature)
-  --no-test      Skip test/ mirror
+  --with-test    Also create test/features/<name>/...
+  --no-test      Skip test/ mirror (default)
 EOF
 }
 
@@ -89,7 +89,7 @@ create_shared_data() {
 
 create_feature() {
   local feature_name="$1"
-  local with_test="${2:-true}"
+  local with_test="${2:-false}"
 
   if [[ -z "${feature_name}" ]]; then
     echo "error: feature_name required" >&2
@@ -118,7 +118,7 @@ create_feature() {
 }
 
 main() {
-  local with_test="true"
+  local with_test="false"
   local mode="feature"
   local feature_name=""
 
