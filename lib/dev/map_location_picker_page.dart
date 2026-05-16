@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../domain/maps/entity/map_location.dart';
 import 'map_location_extensions.dart';
 import '../features/home/presentation/viewmodel/map_location_picker_ui_model.dart';
@@ -279,7 +280,7 @@ class _LocationResultPanel extends StatelessWidget {
               if (errorMessage != null)
                 Text(
                   errorMessage!,
-                  style: TextStyle(
+                  style: AppTextStyles.bodyMedium.copyWith(
                     color: Theme.of(context).colorScheme.error,
                   ),
                 ),
@@ -330,7 +331,9 @@ class _ResultRow extends StatelessWidget {
           children: <TextSpan>[
             TextSpan(
               text: '$label: ',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             TextSpan(text: value),
           ],

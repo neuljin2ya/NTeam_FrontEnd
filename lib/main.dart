@@ -8,8 +8,10 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
+import 'common/data/providers/device_token_storage_provider.dart';
 import 'my_app.dart';
 
 /// Try using const constructors as much as possible!
@@ -55,9 +57,15 @@ Future<void> bootstrap() async {
       });
 
 
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
+
   runApp(
-    const ProviderScope(
-      child: MyApp()
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      ],
+      child: const MyApp(),
     ),
   );
 

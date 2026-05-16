@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 enum AppInputFieldState {
@@ -43,6 +44,14 @@ class AppInputField extends StatelessWidget {
 
   final bool obscureText;
 
+  static const BorderRadius _borderRadius = BorderRadius.all(Radius.circular(8));
+
+  static const BorderSide _focusBorderSide = BorderSide(color: FigmaColors.gray200);
+
+  static const BorderSide _errorBorderSide = BorderSide(color: FigmaColors.error);
+
+  static const BorderSide _noBorderSide = BorderSide.none;
+
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = state == AppInputFieldState.disabled;
@@ -56,14 +65,7 @@ class AppInputField extends StatelessWidget {
         obscureText: obscureText,
         cursorColor: _textColor,
 
-        /// 입력 텍스트 스타일
-        style: TextStyle(
-          color: _textColor,
-          fontSize: 16,
-          fontFamily: 'SUIT',
-          fontWeight: FontWeight.w400,
-          height: 1.42,
-        ),
+        style: AppTextStyles.bodyLarge.copyWith(color: _textColor),
 
         decoration: InputDecoration(
           filled: true,
@@ -71,14 +73,7 @@ class AppInputField extends StatelessWidget {
 
           hintText: hintText,
 
-          /// placeholder 스타일
-          hintStyle: TextStyle(
-            color: _hintColor,
-            fontSize: 16,
-            fontFamily: 'SUIT',
-            fontWeight: FontWeight.w400,
-            height: 1.42,
-          ),
+          hintStyle: AppTextStyles.bodyLarge.copyWith(color: _hintColor),
 
           /// svg icon
           prefixIcon: svgIcon == null
@@ -109,16 +104,42 @@ class AppInputField extends StatelessWidget {
 
           contentPadding: const EdgeInsets.all(12),
 
-          border: _border,
-          enabledBorder: _border,
-          focusedBorder: _border,
-          disabledBorder: _border,
-          errorBorder: _border,
-          focusedErrorBorder: _border,
+          border: _outlineBorder(_enabledBorderSide),
+          enabledBorder: _outlineBorder(_enabledBorderSide),
+          focusedBorder: _outlineBorder(_focusedBorderSide),
+          disabledBorder: _outlineBorder(_disabledBorderSide),
+          errorBorder: _outlineBorder(_errorBorderSide),
+          focusedErrorBorder: _outlineBorder(_errorBorderSide),
         ),
       ),
     );
   }
+
+  OutlineInputBorder _outlineBorder(BorderSide side) {
+    return OutlineInputBorder(
+      borderRadius: _borderRadius,
+      borderSide: side,
+    );
+  }
+
+  BorderSide get _enabledBorderSide {
+    if (state == AppInputFieldState.error) {
+      return _errorBorderSide;
+    }
+    if (state == AppInputFieldState.focused) {
+      return _focusBorderSide;
+    }
+    return _noBorderSide;
+  }
+
+  BorderSide get _focusedBorderSide {
+    if (state == AppInputFieldState.error) {
+      return _errorBorderSide;
+    }
+    return _focusBorderSide;
+  }
+
+  BorderSide get _disabledBorderSide => _noBorderSide;
 
   // ---------------------------------------------------------------------------
   // background color
@@ -185,31 +206,6 @@ class AppInputField extends StatelessWidget {
       case AppInputFieldState.enabled:
       case AppInputFieldState.focused:
         return FigmaColors.white;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // border
-  // ---------------------------------------------------------------------------
-
-  OutlineInputBorder get _border {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: _borderSide,
-    );
-  }
-
-  BorderSide get _borderSide {
-    switch (state) {
-      case AppInputFieldState.focused:
-        return const BorderSide(color: FigmaColors.gray200);
-
-      case AppInputFieldState.error:
-        return const BorderSide(color: FigmaColors.error);
-
-      case AppInputFieldState.enabled:
-      case AppInputFieldState.disabled:
-        return BorderSide.none;
     }
   }
 }

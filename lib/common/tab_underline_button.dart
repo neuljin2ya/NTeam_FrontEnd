@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 하단 라인으로 선택 상태를 표시하는 공통 탭 버튼.
@@ -77,12 +78,10 @@ class TabUnderlineButton extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: TextStyle(
+            style: AppTextStyles.labelLarge.copyWith(
               color: textColor,
               fontSize: fontSize,
-              fontFamily: 'SUIT',
               fontWeight: fontWeight,
-              height: 1.42,
               letterSpacing: -0.16,
             ),
           ),

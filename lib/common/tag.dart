@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 텍스트와 색상, 크기를 조절할 수 있는 공통 태그 위젯.
@@ -64,12 +65,10 @@ class Tag extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: AppTextStyles.labelMedium.copyWith(
           color: textColor,
           fontSize: fontSize,
-          fontFamily: 'SUIT',
           fontWeight: fontWeight,
-          height: 1.5,
         ),
       ),
     );

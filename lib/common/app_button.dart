@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// ---------------------------------------------------------------------------
@@ -101,15 +102,7 @@ class AppButton extends StatelessWidget {
           child: Text(
             text,
 
-            /// 버튼 텍스트 스타일
-            style: TextStyle(
-              color: _textColor,
-              fontSize: _fontSize,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w700,
-              height: _lineHeight,
-              letterSpacing: _letterSpacing,
-            ),
+            style: _textStyle,
           ),
         ),
       ),
@@ -205,52 +198,12 @@ class AppButton extends StatelessWidget {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // 버튼 폰트 크기
-  // ---------------------------------------------------------------------------
-
-  double get _fontSize {
-    switch (size) {
-      case AppButtonSize.large:
-        return 24;
-
-      case AppButtonSize.medium:
-        return 20;
-
-      case AppButtonSize.small:
-        return 16;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // 버튼 line-height
-  // ---------------------------------------------------------------------------
-
-  double get _lineHeight {
-    switch (size) {
-      case AppButtonSize.large:
-        return 1.5;
-
-      case AppButtonSize.medium:
-      case AppButtonSize.small:
-        return 1.42;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // 버튼 letter-spacing
-  // ---------------------------------------------------------------------------
-
-  double get _letterSpacing {
-    switch (size) {
-      case AppButtonSize.large:
-        return -0.48;
-
-      case AppButtonSize.medium:
-        return -0.40;
-
-      case AppButtonSize.small:
-        return -0.16;
-    }
+  TextStyle get _textStyle {
+    final TextStyle base = switch (size) {
+      AppButtonSize.large => AppTextStyles.buttonLarge,
+      AppButtonSize.medium => AppTextStyles.buttonMedium,
+      AppButtonSize.small => AppTextStyles.buttonSmall,
+    };
+    return base.copyWith(color: _textColor);
   }
 }

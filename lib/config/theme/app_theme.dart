@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_semantic_colors.dart';
+import 'app_text_styles.dart';
 import 'figma_colors.dart';
 
 /// [FigmaColors] · [AppSemanticColors] 기반 [ThemeData].
@@ -29,16 +30,8 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppSemanticColors.backgroundPage,
       dividerColor: AppSemanticColors.borderDefault,
-      fontFamily: 'SUIT',
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: AppSemanticColors.textPrimary),
-        bodyMedium: TextStyle(color: AppSemanticColors.textPrimary),
-        bodySmall: TextStyle(color: AppSemanticColors.textSecondary),
-        labelLarge: TextStyle(
-          color: AppSemanticColors.textPrimary,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+      fontFamily: AppTextStyles.fontFamily,
+      textTheme: AppTextStyles.textTheme(),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppSemanticColors.backgroundPage,
         foregroundColor: AppSemanticColors.textPrimary,
@@ -48,8 +41,8 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppSemanticColors.backgroundElevated,
-        labelStyle: const TextStyle(color: AppSemanticColors.textSecondary),
-        hintStyle: const TextStyle(color: AppSemanticColors.textDisabled),
+        labelStyle: AppTextStyles.withSecondaryColor(AppTextStyles.bodyLarge),
+        hintStyle: AppTextStyles.withDisabledColor(AppTextStyles.bodyLarge),
         border: OutlineInputBorder(
           borderSide: const BorderSide(color: AppSemanticColors.borderDefault),
           borderRadius: BorderRadius.circular(8),

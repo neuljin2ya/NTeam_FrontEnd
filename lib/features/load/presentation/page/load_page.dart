@@ -14,7 +14,6 @@ class LoadPage extends StatefulWidget {
 class _LoadPageState extends State<LoadPage> {
   static const List<Permission> _requiredPermissions = <Permission>[
     Permission.locationWhenInUse,
-    Permission.camera,
   ];
 
   @override
@@ -28,7 +27,7 @@ class _LoadPageState extends State<LoadPage> {
     if (!mounted) {
       return;
     }
-    context.go(SGRoute.home.route);
+    context.go(SGRoute.login.route);
   }
 
   @override

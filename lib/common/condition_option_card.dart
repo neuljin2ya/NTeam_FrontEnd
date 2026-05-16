@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 제목과 설명을 함께 보여주는 상태 선택 카드.
@@ -89,12 +90,8 @@ class ConditionOptionCard extends StatelessWidget {
               width: contentWidth,
               child: Text(
                 title,
-                style: TextStyle(
+                style: AppTextStyles.titleLarge.copyWith(
                   color: titleColor,
-                  fontSize: 18,
-                  fontFamily: 'SUIT',
-                  fontWeight: FontWeight.w700,
-                  height: 1.5,
                   letterSpacing: -0.18,
                 ),
               ),
@@ -103,12 +100,8 @@ class ConditionOptionCard extends StatelessWidget {
               width: contentWidth,
               child: Text(
                 description,
-                style: TextStyle(
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: descriptionColor,
-                  fontSize: 14,
-                  fontFamily: 'SUIT',
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
                 ),
               ),
             ),

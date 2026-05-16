@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 알약 형태의 공통 탭 버튼.
@@ -90,12 +91,10 @@ class TabButton extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: TextStyle(
+            style: AppTextStyles.labelMedium.copyWith(
               color: textColor,
               fontSize: fontSize,
-              fontFamily: 'SUIT',
               fontWeight: fontWeight,
-              height: 1.5,
             ),
           ),
         ),
