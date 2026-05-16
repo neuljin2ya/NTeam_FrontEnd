@@ -9,6 +9,7 @@ import '../features/home/presentation/page/home_page.dart';
 import '../features/load/presentation/page/load_page.dart';
 import '../features/login/presentation/page/login_page.dart';
 import '../features/spot_detail/presentation/page/spot_detail_page.dart';
+import '../features/spot_video/presentation/page/spot_video_detail_page.dart';
 import '../features/spotdetail_modal/presentation/page/spot_detail_review_page.dart';
 import '../features/upload_video/presentation/page/upload_video_page.dart';
 
@@ -21,6 +22,7 @@ enum SGRoute {
   login,
   spotDetail,
   spotDetailReview,
+  spotVideoDetail,
   uploadVideo,
   register,
   forgotPassword,
@@ -64,6 +66,15 @@ GoRouter goRouter(Ref ref) => GoRouter(
                 extra is List<String> ? extra : const <String>[];
 
             return SpotDetailReviewPage(selectedStatusIds: selectedStatusIds);
+          },
+        ),
+        GoRoute(
+          path: SGRoute.spotVideoDetail.route,
+          builder: (BuildContext context, GoRouterState state) {
+            final Object? extra = state.extra;
+            final int initialIndex = extra is int ? extra : 0;
+
+            return SpotVideoDetailPage(initialIndex: initialIndex);
           },
         ),
         GoRoute(

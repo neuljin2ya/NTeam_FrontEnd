@@ -140,8 +140,8 @@ class _DetailPanel extends StatelessWidget {
           const SizedBox(height: 40),
           const _RecentStatusSection(),
           _VideoSection(
-            onVideoTap: () {
-              // TODO: 영상 상세 화면 연결.
+            onVideoTap: (int index) {
+              context.push(SGRoute.spotVideoDetail.route, extra: index);
             },
             onAddTap: () {
               context.push(SGRoute.uploadVideo.route);
@@ -400,7 +400,7 @@ class _VideoSection extends StatefulWidget {
     required this.onAddTap,
   });
 
-  final VoidCallback onVideoTap;
+  final ValueChanged<int> onVideoTap;
   final VoidCallback onAddTap;
 
   @override
@@ -495,10 +495,21 @@ class _VideoSectionState extends State<_VideoSection> {
               Row(
                 children: <Widget>[
                   _VideoTile(
-                      color: FigmaColors.gray200, onPressed: widget.onVideoTap),
+                    color: FigmaColors.gray200,
+                    thumbnailUrl:
+                        'https://www.figma.com/api/mcp/asset/d3ab41a6-5842-4033-83b9-832da461d003',
+                    onPressed: () => widget.onVideoTap(0),
+                  ),
                   const SizedBox(width: 12),
                   _VideoTile(
-                      color: FigmaColors.gray300, onPressed: widget.onVideoTap),
+                    color: FigmaColors.gray200,
+                    onPressed: () => widget.onVideoTap(1),
+                  ),
+                  const SizedBox(width: 12),
+                  _VideoTile(
+                    color: FigmaColors.gray300,
+                    onPressed: () => widget.onVideoTap(1),
+                  ),
                 ],
               ),
             ],
@@ -536,10 +547,12 @@ class _VideoTile extends StatelessWidget {
   const _VideoTile({
     required this.color,
     required this.onPressed,
+    this.thumbnailUrl,
   });
 
   final Color color;
   final VoidCallback onPressed;
+  final String? thumbnailUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -547,17 +560,32 @@ class _VideoTile extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onPressed,
       child: Container(
-        width: 118,
-        height: 164,
+        width: 82,
+        height: 112,
         decoration: BoxDecoration(
-          // TODO: 영상 썸네일 API 이미지가 있으면 DecorationImage로 교체.
           color: color,
           borderRadius: BorderRadius.circular(16),
+          image: thumbnailUrl == null
+              ? null
+              : DecorationImage(
+                  image: NetworkImage(thumbnailUrl!),
+                  fit: BoxFit.cover,
+                ),
         ),
-        child: const Icon(
-          Icons.play_circle_outline,
-          color: FigmaColors.white,
-          size: 36,
+        child: Center(
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0x33000000),
+            ),
+            child: const Icon(
+              Icons.play_circle_outline,
+              color: FigmaColors.white,
+              size: 36,
+            ),
+          ),
         ),
       ),
     );
