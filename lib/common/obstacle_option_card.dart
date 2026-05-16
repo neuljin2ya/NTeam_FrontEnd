@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 아이콘과 텍스트를 함께 보여주는 선택 옵션 카드.
@@ -109,13 +110,7 @@ class ObstacleOptionCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                fontFamily: 'SUIT',
-                fontWeight: FontWeight.w400,
-                height: 1.5,
-              ),
+              style: AppTextStyles.bodyMedium.copyWith(color: textColor),
             ),
           ],
         ),

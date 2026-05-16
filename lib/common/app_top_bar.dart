@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 화면 상단에서 사용하는 공통 앱 바.
@@ -98,12 +99,8 @@ class AppTopBar extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: AppTextStyles.titleLarge.copyWith(
               color: titleColor,
-              fontSize: 18,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w700,
-              height: 1.5,
               letterSpacing: -0.18,
             ),
           ),
@@ -173,12 +170,8 @@ class _ActionTextButton extends StatelessWidget {
       onTap: onPressed,
       child: Text(
         label,
-        style: TextStyle(
+        style: AppTextStyles.labelLarge.copyWith(
           color: textColor,
-          fontSize: 16,
-          fontFamily: 'SUIT',
-          fontWeight: FontWeight.w700,
-          height: 1.42,
           letterSpacing: -0.16,
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parkou_route/common/difficulty_tag.dart';
 import 'package:parkou_route/common/tag.dart';
 import 'package:parkou_route/config/theme/app_semantic_colors.dart';
+import 'package:parkou_route/config/theme/app_text_styles.dart';
 import 'package:parkou_route/config/theme/figma_colors.dart';
 
 class HomeSpotCardWidget extends StatelessWidget {
@@ -95,11 +96,8 @@ class _SpotInfoColumn extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: AppTextStyles.labelLarge.copyWith(
                   color: AppSemanticColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  height: 1.42,
                   letterSpacing: -0.16,
                 ),
               ),
@@ -113,10 +111,8 @@ class _SpotInfoColumn extends StatelessWidget {
           address,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: AppTextStyles.labelSmall.copyWith(
             color: AppSemanticColors.textSecondary,
-            fontSize: 10,
-            fontWeight: FontWeight.w400,
             height: 1.42,
             letterSpacing: -0.1,
           ),

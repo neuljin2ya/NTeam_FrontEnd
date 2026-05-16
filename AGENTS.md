@@ -21,7 +21,9 @@ presentation  →  domain  ←  data
 | `data` → `domain` | ✅ 인터페이스 구현, DTO → Entity 매핑 | — |
 | `domain` → `data` / `presentation` | — | ❌ |
 | `data` → `presentation` | — | ❌ |
-| Feature A → Feature B `presentation` / `data` | — | ❌ (공유는 `lib/common`, `lib/data`, `domain` 계약으로) |
+| Feature A → Feature B `presentation` / `data` | — | ❌ (공유는 `lib/common`, `lib/data`, feature `domain` 계약으로) |
+| feature `domain` / `data` → `lib/common/entity` | ✅ 공용 Entity | — |
+| feature `data` → `lib/common/data` | ✅ 공용 DTO·Mapper·Provider | feature `domain`에 DTO 직접 노출 금지 |
 
 - **domain**: Flutter/Dio/Riverpod 등 프레임워크에 의존하지 않는 순수 Dart.
 - **data**: 원격·로컬 소스, DTO, Repository **구현체**.
@@ -39,10 +41,14 @@ lib/
 │   └── theme/
 │       ├── figma_colors.dart           # Figma primitive 변수 (HEX)
 │       ├── app_semantic_colors.dart    # Figma semantic 변수 (조합)
+│       ├── app_text_styles.dart        # SUIT 타이포그래피 토큰
 │       └── app_theme.dart              # ThemeData (Material 연결)
 ├── constants/                # 문자열, API 경로, 에셋 경로
-├── common/                   # feature 무관 공용 UI·유틸
-├── data/                     # 앱 공용 data
+├── common/                   # feature 무관 공용 (UI·네트워크 계약)
+│   ├── entity/               # 공용 Entity (freezed, fromJson 없음)
+│   ├── data/                 # 공용 DTO·Mapper·Provider (§2.6)
+│   └── *.dart                # 공용 위젯·유틸
+├── data/                     # 앱 공용 data (네이버 맵 등)
 │   ├── datasources/
 │   ├── models/
 │   └── repository/
@@ -99,12 +105,12 @@ lib/
 | 허용 | 금지 |
 |------|------|
 | 테마, **Figma 컬러 토큰**, 로케일, 앱 전역 UI 설정 모델 | feature별 화면·Use case |
-| `FigmaColors`, `AppSemanticColors`, `AppTheme` | 네트워크 레이어 |
-| `ThemeUiModel` + freezed/json | 위젯 안 `Color(0xFF...)` 하드코딩 |
+| `FigmaColors`, `AppSemanticColors`, `AppTextStyles`, `AppTheme` | 네트워크 레이어 |
+| `ThemeUiModel` + freezed/json | 위젯 안 `Color(0xFF...)` · `TextStyle(fontFamily: …)` 하드코딩 |
 
-**파일 예:** `config/theme/figma_colors.dart`, `app_semantic_colors.dart`, `app_theme.dart`, `theme_ui_model.dart`
+**파일 예:** `config/theme/figma_colors.dart`, `app_semantic_colors.dart`, `app_text_styles.dart`, `app_theme.dart`, `theme_ui_model.dart`
 
-Figma 컬러·테마 상세는 **§7 Figma 컬러 & 테마** 참고.
+Figma 컬러·타이포·테마 상세는 **§7 Figma 컬러 · 타이포그래피 & 테마** 참고.
 
 ### 2.5 `lib/constants/`
 
@@ -118,13 +124,73 @@ Figma 컬러·테마 상세는 **§7 Figma 컬러 & 테마** 참고.
 
 ### 2.6 `lib/common/`
 
+2개 이상 feature·dev 모듈에서 쓰는 코드를 둡니다. **네트워크 스택은 Freezed + Riverpod + Retrofit** 으로 통일합니다 (§2.6.1).
+
+#### 루트 (`lib/common/*.dart`)
+
 | 허용 | 금지 |
 |------|------|
-| 2개 이상 feature에서 쓰는 **재사용 위젯** | 특정 feature만 쓰는 화면 |
-| 공용 extension, mixin, 작은 helper | domain/data layer 직접 import (가능하면 presentation에서만 사용) |
-| 공용 실패 UI, 로딩, 버튼 스타일 | feature별 비즈니스 규칙 |
+| 재사용 **위젯**, extension, mixin, 작은 helper | 특정 feature만 쓰는 화면·비즈니스 규칙 |
+| 공용 실패 UI, 로딩, 버튼 스타일 | API DTO, Retrofit 인터페이스 |
 
-**파일 예:** `app_bar_gone.dart`, `link_card.dart`, `context_extensions.dart`
+**파일 예:** `app_button.dart`, `tag.dart`, `difficulty_tag.dart`
+
+#### `lib/common/entity/` — 공용 Entity
+
+| 허용 | 금지 |
+|------|------|
+| **freezed** Value object·Envelope (`ApiResponse<T>`) | `fromJson` / `json_serializable` |
+| feature·dev `domain`에서 import | Dio, Retrofit, Riverpod |
+
+**파일 예:** `entity/api_response.dart` → `api_response.freezed.dart`
+
+#### `lib/common/data/` — 공용 DTO·인프라
+
+| 하위 | 허용 | 금지 |
+|------|------|------|
+| `models/` | **freezed** + **json_serializable** DTO (`ApiResponseModel<T>`) | feature Entity |
+| `mappers/` | DTO ↔ `lib/common/entity` 변환 | UI |
+| `providers/` | **Riverpod** `@riverpod` (`apiResponseDecoder` 등) | feature Use case |
+
+**파일 예:** `data/models/api_response_model.dart`, `data/mappers/api_response_mapper.dart`
+
+#### 2.6.1 API 모듈 작성 규칙 (Freezed · Riverpod · Retrofit)
+
+feature 전용·`lib/dev/{모듈}/` API는 아래 **동일한 레이어**를 따릅니다.
+
+```
+{module}/
+├── domain/
+│   ├── entity/           # 비즈니스 Entity (freezed)
+│   ├── repository/       # abstract Repository
+│   └── usecase/
+└── data/
+    ├── datasources/
+    │   ├── *_rest_api.dart    # @RestApi (Retrofit) — @Query 파라미터 개별 선언
+    │   └── remote_*_ds.dart   # Retrofit 호출·DioException 처리
+    ├── models/                # API 전용 DTO (freezed + json) 또는 envelope 래퍼
+    ├── mappers/               # Model → domain entity
+    ├── repository/            # *RepositoryImpl
+    └── providers/             # Dio, RestApi, DataSource, Repository, UseCase
+```
+
+| 레이어 | 도구 | 역할 |
+|--------|------|------|
+| Entity | **Freezed** | `lib/common/entity` 또는 feature `domain/entity` |
+| DTO | **Freezed** + `json_serializable` | `lib/common/data/models` 또는 feature `data/models` |
+| REST | **Retrofit** (`@RestApi`, `@GET`, `@Query`) | `*_rest_api.dart` + `*.g.dart` |
+| DI | **Riverpod** (`riverpod_annotation`) | `providers/*.dart` + `*.g.dart` |
+| 응답 envelope | `ApiResponse` / `ApiResponseModel` | `code`, `message`, `data` 공통 형식 |
+
+**Retrofit 쿼리:** `@Queries() Map` 대신 **`@Query('name')` 파라미터를 메서드에 직접** 선언합니다. `null`은 생성 코드에서 쿼리에서 제외됩니다.
+
+**Retrofit 응답:** 엔드포인트별 `*ResponseModel`(freezed `fromJson`) 또는 `Map` 파싱 후 `ApiResponseDecoder` 사용.
+
+**Repository:** DataSource DTO → Mapper → domain Entity, 반환 타입은 `ApiResponse<T>` 등 **common entity** 우선.
+
+**코드 생성:** `make build_runner` — `*.freezed.dart`, `*.g.dart`(json·retrofit·riverpod) 직접 수정 금지.
+
+**예 (dev 스팟):** `lib/dev/spot/` — `SpotRestApi`, `RemoteSpotDataSource`, `SpotRepositoryImpl`, `getSpotsUseCaseProvider`
 
 ### 2.7 `lib/data/` (공용 data)
 
@@ -314,21 +380,50 @@ class LoginViewModel extends _$LoginViewModel { ... }
 
 ---
 
-## 7. Figma 컬러 & 테마
+## 7. Figma 컬러 · 타이포그래피 & 테마
 
-UI 색상은 **Figma Variables / Color Styles** 와 1:1로 맞춥니다.  
-디자인이 바뀌면 `lib/config/theme/` 만 수정하고, feature·위젯 코드는 시맨틱 토큰만 참조합니다.
+UI 색·글꼴은 **Figma Variables / Text Styles** 와 맞춥니다.  
+디자인이 바뀌면 `lib/config/theme/` · `pubspec.yaml` `fonts:` 만 수정하고, feature·위젯은 `AppSemanticColors` · `AppTextStyles` · `Theme.of(context).textTheme` 만 참조합니다.
 
 ### 7.1 파일 역할
 
-| 파일 | Figma 대응 | 내용 |
-|------|------------|------|
+| 파일 | Figma / 에셋 대응 | 내용 |
+|------|-------------------|------|
 | `figma_colors.dart` | Primitive collections (`Brand`, `Neutral`, `Status`, …) | HEX `Color` 상수. Figma에 없는 색 추가 금지 |
 | `app_semantic_colors.dart` | Semantic collections (`Text`, `Background`, `Border`, …) | `FigmaColors` 조합만. 라이트/다크는 `AppSemanticColors` / `AppSemanticColorsDark` |
-| `app_theme.dart` | — | `ThemeData` · `ColorScheme` · Material 컴포넌트 테마 |
+| `app_text_styles.dart` | Text styles (SUIT) | `TextStyle` 상수·`textTheme()` · 색 헬퍼 (`withPrimaryColor` 등) |
+| `app_theme.dart` | — | `ThemeData` · `fontFamily` · `textTheme` · Material 컴포넌트 테마 |
 | `theme_ui_model.dart` | — | `ThemeMode` 등 런타임 UI 상태 (freezed) |
+| `pubspec.yaml` `flutter.fonts` | `assets/fonts/SUIT-*.ttf` | `family: SUIT`, weight 100~900 |
 
-### 7.2 Figma 이름 → Dart 이름 규칙
+### 7.2 타이포그래피 (SUIT)
+
+폰트 파일은 `assets/fonts/` 에 두고 `pubspec.yaml` 에 등록합니다. 코드에서는 **`AppTextStyles`** 만 사용합니다 (`fontFamily: 'SUIT'` 인라인 금지).
+
+| `AppTextStyles` | 크기 / 굵기 | 용도 예 |
+|-----------------|-------------|---------|
+| `headlineLarge` | 20 / w700 | 모달 제목 |
+| `headlineMedium` | 18 / w700 | 강조 섹션 |
+| `titleLarge` | 18 / w700 | 앱바·카드 제목 |
+| `bodyLarge` | 16 / w400 | 본문·입력 필드 |
+| `bodyMedium` | 14 / w400 | 설명·옵션 카드 |
+| `bodySmall` | 14 / w400 (h 1.43) | 모달 본문 |
+| `labelLarge` | 16 / w700 | 탭·폴드 헤더 |
+| `labelMedium` | 14 / w700 | 태그·탭 버튼 |
+| `labelSmall` | 10 / w400 | 난이도·보조 캡션 |
+| `buttonLarge` / `buttonMedium` / `buttonSmall` | 24·20·16 / w700 | [AppButton] 크기별 |
+
+- 색이 필요하면 `AppTextStyles.withPrimaryColor(style)` 등 또는 `style.copyWith(color: …)`.
+- `ThemeData` 연동: `AppTheme` → `textTheme: AppTextStyles.textTheme()`.
+- 화면에서는 가능하면 `Theme.of(context).textTheme.bodyLarge` 등 Material 슬롯 사용.
+
+```dart
+import 'package:parkou_route/config/theme/app_text_styles.dart';
+
+Text('제목', style: AppTextStyles.titleLarge.copyWith(color: AppSemanticColors.textPrimary));
+```
+
+### 7.3 Figma 이름 → Dart 이름 규칙
 
 Figma Variables 패널에 보이는 **전체 경로**를 주석으로 남기고, Dart 식별자는 아래 규칙으로 변환합니다.
 
@@ -348,36 +443,40 @@ Figma Variables 패널에 보이는 **전체 경로**를 주석으로 남기고,
 4. **주석**은 Figma 원문 그대로: `/// Figma: \`Brand/Primary\``
 5. Figma collection 이름이 바뀌면 Dart 파일의 **섹션 주석**과 멤버를 함께 갱신
 
-### 7.3 코드 작성 규칙
+### 7.4 코드 작성 규칙
 
 | ✅ 해야 함 | ❌ 하면 안 됨 |
 |------------|----------------|
 | Figma Inspect / Variables에서 HEX 복사 후 `figma_colors.dart` 반영 | 위젯·Screen에 `Color(0xFF...)` 직접 작성 |
 | 화면·공용 위젯은 `AppSemanticColors.*` 우선 사용 | `Colors.blue`, `ColorScheme.primary`만으로 임의 색 지정 |
+| 텍스트는 `AppTextStyles.*` 또는 `Theme.of(context).textTheme` | `TextStyle(fontFamily: 'SUIT', fontSize: …)` 인라인 정의 |
 | Material 연동은 `AppTheme.light()` / `dark()` | `FlexScheme` 등 외부 팔레트에 디자인 토큰 중복 정의 |
 | 다크 모드 시맨틱은 `AppSemanticColorsDark` | 라이트 HEX를 다크에서 그대로 재사용 (Figma dark 토큰 없을 때만 예외·주석 필수) |
 | 불투명도는 Figma `Alpha/*` 토큰 사용 | `withOpacity` 매직 넘버 (Figma에 토큰이 있으면 그 값 사용) |
+| `letterSpacing` 등 예외는 기존 스타일 `copyWith`만 | 공용 위젯마다 타이포 수치 중복 |
 
 **위젯 예시**
 
 ```dart
-import 'package:flutter_riverpod_template/config/theme/app_semantic_colors.dart';
+import 'package:parkou_route/config/theme/app_semantic_colors.dart';
+import 'package:parkou_route/config/theme/app_text_styles.dart';
 
 Text(
   '제목',
-  style: TextStyle(color: AppSemanticColors.textPrimary),
+  style: AppTextStyles.withPrimaryColor(AppTextStyles.titleLarge),
 );
 
 Container(color: AppSemanticColors.backgroundSurface);
 ```
 
-### 7.4 Figma 갱신 워크플로
+### 7.5 Figma · 폰트 갱신 워크플로
 
 1. Figma Variables / Styles 패널에서 추가·변경·삭제 확인  
 2. `figma_colors.dart` primitive 동기화 (이름·HEX)  
 3. `app_semantic_colors.dart` 매핑 조정 (시맨틱이 primitive 참조하는 경우)  
-4. `app_theme.dart`에서 `ColorScheme`·컴포넌트 테마 필요 시 수정  
-5. `flutter analyze` — `use_full_hex_values_for_flutter_colors` 준수 (`0xFF` 8자리)
+4. 텍스트 스타일 변경 시 `app_text_styles.dart` · 필요 시 `assets/fonts/` · `pubspec.yaml` `fonts:` 갱신  
+5. `app_theme.dart`에서 `ColorScheme`·`textTheme`·컴포넌트 테마 필요 시 수정  
+6. `flutter analyze` — `use_full_hex_values_for_flutter_colors` 준수 (`0xFF` 8자리)
 
 `my_app.dart`에서 Figma 테마 적용:
 
@@ -388,12 +487,14 @@ darkTheme: AppTheme.dark(),
 
 (현재는 `FlexThemeData` 템플릿이 남아 있을 수 있음. Figma 토큰 확정 후 위로 교체.)
 
-### 7.5 Agent · 리뷰 체크
+### 7.6 Agent · 리뷰 체크
 
 - [ ] 새 색이 Figma Variables에 존재하는가?  
 - [ ] `/// Figma: \`...\`` 주석이 패널 이름과 일치하는가?  
 - [ ] primitive / semantic 분리가 지켜졌는가?  
 - [ ] feature `presentation`에 raw HEX가 없는가?
+- [ ] 텍스트가 `AppTextStyles` / `textTheme`를 쓰는가? (`fontFamily: 'SUIT'` 인라인 없음)
+- [ ] 새 weight 추가 시 `pubspec.yaml` `fonts:` 와 `assets/fonts/`가 함께 갱신되었는가?
 
 ---
 

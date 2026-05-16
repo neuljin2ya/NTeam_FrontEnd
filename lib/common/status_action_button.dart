@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 작은 아이콘과 텍스트를 함께 보여주는 상태 액션 버튼.
@@ -81,12 +82,10 @@ class StatusActionButton extends StatelessWidget {
             SizedBox(width: spacing),
             Text(
               text,
-              style: TextStyle(
+              style: AppTextStyles.bodyMedium.copyWith(
                 color: color,
                 fontSize: fontSize,
-                fontFamily: 'SUIT',
                 fontWeight: fontWeight,
-                height: 1.5,
               ),
             ),
           ],

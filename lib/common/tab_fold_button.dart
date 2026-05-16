@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 접기/펼치기 상태를 표시하는 탭 헤더 버튼.
@@ -72,12 +73,8 @@ class TabFoldButton extends StatelessWidget {
                 text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: AppTextStyles.labelLarge.copyWith(
                   color: textColor,
-                  fontSize: 16,
-                  fontFamily: 'SUIT',
-                  fontWeight: FontWeight.w700,
-                  height: 1.42,
                   letterSpacing: -0.16,
                 ),
               ),

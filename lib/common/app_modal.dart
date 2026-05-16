@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/theme/app_text_styles.dart';
 import '../config/theme/figma_colors.dart';
 
 /// 제목, 설명, 버튼 텍스트를 바꿔 쓸 수 있는 공통 모달.
@@ -196,12 +197,8 @@ class _ModalTextContent extends StatelessWidget {
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: AppTextStyles.headlineLarge.copyWith(
                 color: titleColor,
-                fontSize: 20,
-                fontFamily: 'SUIT',
-                fontWeight: FontWeight.w700,
-                height: 1.42,
                 letterSpacing: -0.40,
               ),
             ),
@@ -213,12 +210,8 @@ class _ModalTextContent extends StatelessWidget {
               child: Text(
                 body,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: AppTextStyles.bodySmall.copyWith(
                   color: descriptionColor,
-                  fontSize: 14,
-                  fontFamily: 'SUIT',
-                  fontWeight: FontWeight.w400,
-                  height: 1.43,
                 ),
               ),
             ),
@@ -259,14 +252,7 @@ class _ModalButton extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(
           text,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 20,
-            fontFamily: 'SUIT',
-            fontWeight: FontWeight.w700,
-            height: 1.42,
-            letterSpacing: -0.40,
-          ),
+          style: AppTextStyles.buttonMedium.copyWith(color: textColor),
         ),
       ),
     );
