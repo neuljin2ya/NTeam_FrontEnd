@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,8 +9,8 @@ import '../../../../common/obstacle_option_card.dart';
 import '../../../../common/status_action_button.dart';
 import '../../../../common/tag.dart';
 import '../../../../config/theme/figma_colors.dart';
-import '../widget/spot_detail_modal.dart';
-import 'dart:async';
+import '../../../../router/app_router.dart';
+import '../../../spotdetail_modal/presentation/page/spot_detail_modal.dart';
 
 class SpotDetailPage extends StatelessWidget {
   const SpotDetailPage({super.key});
@@ -62,7 +64,7 @@ class SpotDetailPage extends StatelessWidget {
                       },
                     ),
                   ),
-                  SliverToBoxAdapter(
+                  const SliverToBoxAdapter(
                     child: _DetailPanel(),
                   ),
                 ],
@@ -298,8 +300,10 @@ class _RecentStatusSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...SpotDetailPage._statuses.indexed.map(
-                ((int, _SpotStatusItem) entry) => Padding(
-              padding: EdgeInsets.only(bottom: entry.$1 < SpotDetailPage._statuses.length - 1 ? 8 : 24),
+            ((int, _SpotStatusItem) entry) => Padding(
+              padding: EdgeInsets.only(
+                  bottom:
+                      entry.$1 < SpotDetailPage._statuses.length - 1 ? 8 : 24),
               child: _StatusCard(item: entry.$2),
             ),
           ),
@@ -309,14 +313,23 @@ class _RecentStatusSection extends StatelessWidget {
   }
 
   void _showSpotDetailModal(BuildContext context) {
+    final BuildContext spotDetailContext = context;
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
+      builder: (BuildContext bottomSheetContext) {
         return SpotDetailModal(
+          onBackPressed: () {
+            Navigator.of(bottomSheetContext).pop();
+          },
           onSubmit: (List<String> selectedStatusIds) {
-            // TODO: 선택된 상태 id 목록을 상태 남기기 상세 입력 화면 또는 API로 전달.
+            Navigator.of(bottomSheetContext).pop();
+            spotDetailContext.push(
+              SGRoute.spotDetailReview.route,
+              extra: selectedStatusIds,
+            );
           },
         );
       },
@@ -346,17 +359,18 @@ class _StatusCard extends StatelessWidget {
             children: item.tags
                 .map(
                   (String tag) => Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Tag(
-                  text: tag,
-                  backgroundColor: FigmaColors.gray400,
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  borderRadius: 2,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            )
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Tag(
+                      text: tag,
+                      backgroundColor: FigmaColors.gray400,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      borderRadius: 2,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                )
                 .toList(),
           ),
           const SizedBox(height: 10),
@@ -402,6 +416,8 @@ class _VideoSectionState extends State<_VideoSection> {
     _hintTimer?.cancel();
     super.dispose();
   }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
@@ -414,7 +430,6 @@ class _VideoSectionState extends State<_VideoSection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   const Expanded(
                     child: Text(
@@ -430,7 +445,6 @@ class _VideoSectionState extends State<_VideoSection> {
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
@@ -438,7 +452,8 @@ class _VideoSectionState extends State<_VideoSection> {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            Icon(Icons.add, color: FigmaColors.primary300, size: 20),
+                            Icon(Icons.add,
+                                color: FigmaColors.primary300, size: 20),
                             SizedBox(width: 4),
                             Text(
                               '영상 업로드하기',
@@ -457,7 +472,8 @@ class _VideoSectionState extends State<_VideoSection> {
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onLongPress: () {
-                          _hintTimer = Timer(const Duration(milliseconds: 250), () {
+                          _hintTimer =
+                              Timer(const Duration(milliseconds: 250), () {
                             setState(() => _showHint = true);
                           });
                         },
@@ -478,9 +494,11 @@ class _VideoSectionState extends State<_VideoSection> {
               const SizedBox(height: 16),
               Row(
                 children: <Widget>[
-                  _VideoTile(color: FigmaColors.gray200, onPressed: widget.onVideoTap),
+                  _VideoTile(
+                      color: FigmaColors.gray200, onPressed: widget.onVideoTap),
                   const SizedBox(width: 12),
-                  _VideoTile(color: FigmaColors.gray300, onPressed: widget.onVideoTap),
+                  _VideoTile(
+                      color: FigmaColors.gray300, onPressed: widget.onVideoTap),
                 ],
               ),
             ],
