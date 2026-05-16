@@ -38,7 +38,7 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
   static const int _maxVideoBytes = 100 * 1024 * 1024;
 
   static const VideoQuality _videoCompressQuality =
-      VideoQuality.Res640x480Quality;
+      VideoQuality.Res1280x720Quality;
   static const int _videoFrameRate = 24;
 
   final TextEditingController _skillController = TextEditingController();

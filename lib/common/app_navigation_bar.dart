@@ -175,7 +175,7 @@ class _CenterAddButton extends StatelessWidget {
           width: AppNavigationBar.centerButtonSize,
           height: AppNavigationBar.centerButtonSize,
           decoration: const BoxDecoration(
-            color: FigmaColors.white,
+            color: Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -188,7 +188,7 @@ class _CenterAddButton extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.add,
-                color: FigmaColors.white,
+                color: FigmaColors.black,
                 size: 45,
               ),
             ),

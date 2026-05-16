@@ -201,8 +201,9 @@ class _NewSpotPageState extends ConsumerState<NewSpotPage> {
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            const AppTopBar(
+            AppTopBar(
               title: '새 스팟 등록',
+              onBackPressed: () => GoRouter.of(context).pop(),
             ),
             Expanded(
               child: CustomScrollView(

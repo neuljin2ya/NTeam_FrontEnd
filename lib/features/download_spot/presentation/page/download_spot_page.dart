@@ -63,7 +63,7 @@ class _DownloadSpotPageState extends ConsumerState<DownloadSpotPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                '파쿠르왕님이 저장한 스팟',
+                '저장한 스팟',
                 style: AppTextStyles.headlineLarge.copyWith(
                   color: FigmaColors.white,
                   letterSpacing: -0.4,
@@ -125,14 +125,15 @@ class _DownloadSpotPageState extends ConsumerState<DownloadSpotPage> {
         return SavedSpotListCardWidget(
           title: spot.name,
           address: spot.fullAddress,
-          captionImgUrl:
-              captionImgUrl.isEmpty ? null : captionImgUrl,
+          captionImgUrl: captionImgUrl.isEmpty ? null : captionImgUrl,
           difficulty: SpotDifficultyMapper.toLevel(spot.difficulty),
           statusTags: SpotKeyLabelMapper.mapStatusLabels(
             spot.latestStatusList?.statuses ?? const <String>[],
           ),
           onTap: () {
-            context.push('${SGRoute.spotDetail.route}/${spot.spotId}');
+            context.push(
+              '${SGRoute.spotDetail.route}/${spot.spotId}?hideSaveButton=true',
+            );
           },
         );
       },

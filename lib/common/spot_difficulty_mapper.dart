@@ -6,15 +6,20 @@ final class SpotDifficultyMapper {
 
   static DifficultyLevel toLevel(String difficulty) {
     final String normalized = difficulty.trim().toLowerCase();
-    if (normalized.contains('high') ||
+    if (normalized.contains('hard') ||
+        normalized.contains('high') ||
         normalized.contains('상') ||
         normalized == 'h') {
       return DifficultyLevel.high;
     }
-    if (normalized.contains('medium') ||
+    if (normalized.contains('normal') ||
+        normalized.contains('medium') ||
         normalized.contains('중') ||
         normalized == 'm') {
       return DifficultyLevel.medium;
+    }
+    if (normalized.contains('easy') || normalized.contains('low')) {
+      return DifficultyLevel.low;
     }
     return DifficultyLevel.low;
   }
