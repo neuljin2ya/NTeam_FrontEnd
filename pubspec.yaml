@@ -99,6 +99,7 @@ flutter:
     - assets/img/
     - assets/icons/
     - assets/logo.svg
+    - assets/appicon.png
 
   fonts:
     - family: SUIT
