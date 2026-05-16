@@ -1,91 +1,76 @@
 import 'package:flutter/material.dart';
 
-/// Figma **Variables** / Color Styles 에 정의된 원시(primitive) 컬러.
+/// Figma Variables / Color Styles 기반 컬러 시스템
 ///
-/// - Figma 경로 `Collection/Name` → lowerCamelCase static const 멤버.
-/// - 각 상수 위 `/// Figma: \`...\`` 주석은 Figma 패널 이름과 **동일**하게 유지.
-/// - HEX 값은 Figma Inspect(또는 Variables)에서 복사해 갱신. 임의 색상 추가 금지.
-///
-/// 사용: `FigmaColors.brand.primary` — 위젯에 `Color(0xFF...)` 리터럴 직접 사용 금지.
+/// 사용:
+/// `FigmaColors.primaryMain`
+/// `FigmaColors.gray600`
 abstract final class FigmaColors {
   FigmaColors._();
 
   // ---------------------------------------------------------------------------
-  // Brand — Figma collection: `Brand`
+  // Primary
   // ---------------------------------------------------------------------------
 
-  /// Figma: `Brand/Primary`
-  static const Color brandPrimary = Color(0xFF1E40AF);
+  /// Figma: `Primary/Main`
+  static const Color primaryMain = Color(0xFF19191C);
 
-  /// Figma: `Brand/Primary Dark`
-  static const Color brandPrimaryDark = Color(0xFF1E3A8A);
+  /// Figma: `Primary/600`
+  static const Color primary600 = Color(0xFF002416);
 
-  /// Figma: `Brand/Secondary`
-  static const Color brandSecondary = Color(0xFF3B82F6);
+  /// Figma: `Primary/500`
+  static const Color primary500 = Color(0xFF004B34);
 
-  /// Figma: `Brand/On Primary`
-  static const Color brandOnPrimary = Color(0xFFFFFFFF);
+  /// Figma: `Primary/400`
+  static const Color primary400 = Color(0xFF007557);
 
-  // ---------------------------------------------------------------------------
-  // Neutral — Figma collection: `Neutral`
-  // ---------------------------------------------------------------------------
+  /// Figma: `Primary/300`
+  static const Color primary300 = Color(0xFF00A07E);
 
-  /// Figma: `Neutral/0`
-  static const Color neutral0 = Color(0xFFFFFFFF);
+  /// Figma: `Primary/200`
+  static const Color primary200 = Color(0xFF35CCA9);
 
-  /// Figma: `Neutral/50`
-  static const Color neutral50 = Color(0xFFF9FAFB);
+  /// Figma: `Primary/100`
+  static const Color primary100 = Color(0xFF82F7D6);
 
-  /// Figma: `Neutral/100`
-  static const Color neutral100 = Color(0xFFF3F4F6);
-
-  /// Figma: `Neutral/200`
-  static const Color neutral200 = Color(0xFFE5E7EB);
-
-  /// Figma: `Neutral/300`
-  static const Color neutral300 = Color(0xFFD1D5DB);
-
-  /// Figma: `Neutral/400`
-  static const Color neutral400 = Color(0xFF9CA3AF);
-
-  /// Figma: `Neutral/500`
-  static const Color neutral500 = Color(0xFF6B7280);
-
-  /// Figma: `Neutral/600`
-  static const Color neutral600 = Color(0xFF4B5563);
-
-  /// Figma: `Neutral/700`
-  static const Color neutral700 = Color(0xFF374151);
-
-  /// Figma: `Neutral/800`
-  static const Color neutral800 = Color(0xFF1F2937);
-
-  /// Figma: `Neutral/900`
-  static const Color neutral900 = Color(0xFF111827);
+  /// Figma: `Primary/50`
+  static const Color primary50 = Color(0xFFD7FFF5);
 
   // ---------------------------------------------------------------------------
-  // Status — Figma collection: `Status`
+  // Gray
   // ---------------------------------------------------------------------------
 
-  /// Figma: `Status/Success`
-  static const Color statusSuccess = Color(0xFF16A34A);
+  /// Figma: `Gray/600`
+  static const Color gray600 = Color(0xFF19191C);
 
-  /// Figma: `Status/Warning`
-  static const Color statusWarning = Color(0xFFF59E0B);
+  /// Figma: `Gray/500`
+  static const Color gray500 = Color(0xFF27272B);
 
-  /// Figma: `Status/Error`
-  static const Color statusError = Color(0xFFDC2626);
+  /// Figma: `Gray/400`
+  static const Color gray400 = Color(0xFF39383D);
 
-  /// Figma: `Status/Info`
-  static const Color statusInfo = Color(0xFF2563EB);
+  /// Figma: `Gray/300`
+  static const Color gray300 = Color(0xFF414249);
+
+  /// Figma: `Gray/200`
+  static const Color gray200 = Color(0xFF5B5C61);
+
+  /// Figma: `Gray/100`
+  static const Color gray100 = Color(0xFF7E7E8A);
 
   // ---------------------------------------------------------------------------
-  // Alpha — Figma collection: `Alpha` (오버레이·딤 등)
+  // System Colors
   // ---------------------------------------------------------------------------
 
-  /// Figma: `Alpha/Scrim`
-  static const Color alphaScrim = Color(0x80000000);
+  /// Figma: `System/White`
+  static const Color white = Color(0xFFFCFDFF);
 
-  /// Figma: `Alpha/Disabled`
-  static const Color alphaDisabled = Color(0x61000000);
+  /// Figma: `System/Black`
+  static const Color black = Color(0xFF141415);
+
+  /// Figma: `System/Error`
+  static const Color error = Color(0xFFD83326);
+
+  /// Figma: `System/Warning`
+  static const Color warning = Color(0xFFF58942);
 }

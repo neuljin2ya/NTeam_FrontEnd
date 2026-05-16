@@ -14,72 +14,72 @@ abstract final class AppSemanticColors {
   // ---------------------------------------------------------------------------
 
   /// Figma: `Text/Primary`
-  static const Color textPrimary = FigmaColors.neutral900;
+  static const Color textPrimary = FigmaColors.white;
 
   /// Figma: `Text/Secondary`
-  static const Color textSecondary = FigmaColors.neutral600;
+  static const Color textSecondary = FigmaColors.gray100;
 
   /// Figma: `Text/Disabled`
-  static const Color textDisabled = FigmaColors.neutral400;
+  static const Color textDisabled = FigmaColors.gray200;
 
   /// Figma: `Text/On Brand`
-  static const Color textOnBrand = FigmaColors.brandOnPrimary;
+  static const Color textOnBrand = FigmaColors.black;
 
   /// Figma: `Text/Link`
-  static const Color textLink = FigmaColors.brandPrimary;
+  static const Color textLink = FigmaColors.primary100;
 
   // ---------------------------------------------------------------------------
   // Background — Figma collection: `Background`
   // ---------------------------------------------------------------------------
 
   /// Figma: `Background/Page`
-  static const Color backgroundPage = FigmaColors.neutral0;
+  static const Color backgroundPage = FigmaColors.black;
 
   /// Figma: `Background/Surface`
-  static const Color backgroundSurface = FigmaColors.neutral50;
+  static const Color backgroundSurface = FigmaColors.gray600;
 
   /// Figma: `Background/Elevated`
-  static const Color backgroundElevated = FigmaColors.neutral0;
+  static const Color backgroundElevated = FigmaColors.gray500;
 
   /// Figma: `Background/Brand`
-  static const Color backgroundBrand = FigmaColors.brandPrimary;
+  static const Color backgroundBrand = FigmaColors.primary100;
 
   // ---------------------------------------------------------------------------
   // Border — Figma collection: `Border`
   // ---------------------------------------------------------------------------
 
   /// Figma: `Border/Default`
-  static const Color borderDefault = FigmaColors.neutral200;
+  static const Color borderDefault = FigmaColors.gray300;
 
   /// Figma: `Border/Strong`
-  static const Color borderStrong = FigmaColors.neutral300;
+  static const Color borderStrong = FigmaColors.gray200;
 
   /// Figma: `Border/Focus`
-  static const Color borderFocus = FigmaColors.brandPrimary;
+  static const Color borderFocus = FigmaColors.primary100;
 
   // ---------------------------------------------------------------------------
   // Icon — Figma collection: `Icon`
   // ---------------------------------------------------------------------------
 
   /// Figma: `Icon/Primary`
-  static const Color iconPrimary = FigmaColors.neutral700;
+  static const Color iconPrimary = FigmaColors.white;
 
   /// Figma: `Icon/Secondary`
-  static const Color iconSecondary = FigmaColors.neutral500;
+  static const Color iconSecondary = FigmaColors.gray100;
 
   /// Figma: `Icon/On Brand`
-  static const Color iconOnBrand = FigmaColors.brandOnPrimary;
+  static const Color iconOnBrand = FigmaColors.black;
 
   // ---------------------------------------------------------------------------
   // Interactive — Figma collection: `Interactive`
   // ---------------------------------------------------------------------------
 
   /// Figma: `Interactive/Primary`
-  static const Color interactivePrimary = FigmaColors.brandPrimary;
+  static const Color interactivePrimary = FigmaColors.primary100;
 
   /// Figma: `Interactive/Primary Pressed`
-  static const Color interactivePrimaryPressed = FigmaColors.brandPrimaryDark;
+  static const Color interactivePrimaryPressed = FigmaColors.primary200;
 
   /// Figma: `Interactive/Disabled`
-  static const Color interactiveDisabled = FigmaColors.neutral200;
+  static const Color interactiveDisabled = FigmaColors.gray300;
 }
