@@ -200,6 +200,7 @@ class _ModalTextContent extends StatelessWidget {
               style: AppTextStyles.headlineLarge.copyWith(
                 color: titleColor,
                 letterSpacing: -0.40,
+                decoration: TextDecoration.none,
               ),
             ),
           ),
@@ -212,6 +213,7 @@ class _ModalTextContent extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: descriptionColor,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ),
@@ -252,7 +254,10 @@ class _ModalButton extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(
           text,
-          style: AppTextStyles.buttonMedium.copyWith(color: textColor),
+          style: AppTextStyles.buttonMedium.copyWith(
+            color: textColor,
+            decoration: TextDecoration.none,
+          ),
         ),
       ),
     );
