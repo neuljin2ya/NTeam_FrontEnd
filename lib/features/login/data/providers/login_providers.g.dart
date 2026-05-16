@@ -134,6 +134,48 @@ final class LoginRepositoryProvider extends $FunctionalProvider<LoginRepository,
 
 String _$loginRepositoryHash() => r'6a346a2f336563715b16bd1c10a549619c193b8d';
 
+@ProviderFor(getAuthMeUseCase)
+final getAuthMeUseCaseProvider = GetAuthMeUseCaseProvider._();
+
+final class GetAuthMeUseCaseProvider extends $FunctionalProvider<
+    GetAuthMeUseCase,
+    GetAuthMeUseCase,
+    GetAuthMeUseCase> with $Provider<GetAuthMeUseCase> {
+  GetAuthMeUseCaseProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'getAuthMeUseCaseProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$getAuthMeUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetAuthMeUseCase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  GetAuthMeUseCase create(Ref ref) {
+    return getAuthMeUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetAuthMeUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetAuthMeUseCase>(value),
+    );
+  }
+}
+
+String _$getAuthMeUseCaseHash() => r'505223de9607b35bbe496f436270f9fb3c8bacce';
+
 @ProviderFor(loginUseCase)
 final loginUseCaseProvider = LoginUseCaseProvider._();
 

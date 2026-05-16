@@ -5,6 +5,7 @@ import '../../../../common/data/providers/device_token_storage_provider.dart';
 import '../../../../common/data/services/device_id_service.dart';
 import '../../../../common/entity/api_response.dart';
 import '../../data/providers/login_providers.dart';
+import '../../domain/entity/auth_me.dart';
 import '../../domain/entity/login_request.dart';
 import '../state/login_load_state.dart';
 
@@ -25,9 +26,19 @@ class LoginViewModel extends _$LoginViewModel {
     state = const LoginLoadState.loading();
 
     try {
-      await ref.read(deviceTokenStorageProvider).clear();
-
       final String deviceToken = await DeviceIdService.getDeviceId();
+      final DeviceTokenStorage storage =
+          ref.read(deviceTokenStorageProvider);
+      await storage.save(deviceToken);
+
+      final ApiResponse<AuthMe> authMeResponse =
+          await ref.read(getAuthMeUseCaseProvider).call(deviceToken);
+
+      if (_isAuthMeRegistered(authMeResponse)) {
+        state = const LoginLoadState.success();
+        return;
+      }
+
       final ApiResponse<String> response =
           await ref.read(loginUseCaseProvider).call(
                 LoginRequest(
@@ -37,9 +48,6 @@ class LoginViewModel extends _$LoginViewModel {
               );
 
       if (_isLoginSuccess(response.code)) {
-        final DeviceTokenStorage storage =
-            ref.read(deviceTokenStorageProvider);
-        await storage.save(deviceToken);
         state = const LoginLoadState.success();
         return;
       }
@@ -51,4 +59,9 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   bool _isLoginSuccess(String code) => code.startsWith('COMMON200');
+
+  bool _isAuthMeRegistered(ApiResponse<AuthMe> response) {
+    final AuthMe? authMe = response.data;
+    return authMe != null && authMe.isRegistered;
+  }
 }

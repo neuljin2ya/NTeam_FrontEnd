@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../common/data/providers/backend_dio_provider.dart';
 import '../../domain/repository/login_repository.dart';
+import '../../domain/usecase/get_auth_me_use_case.dart';
 import '../../domain/usecase/login_use_case.dart';
 import '../datasources/login_rest_api.dart';
 import '../datasources/remote_login_ds.dart';
@@ -22,6 +23,11 @@ RemoteLoginDataSource remoteLoginDataSource(Ref ref) {
 @Riverpod(keepAlive: true)
 LoginRepository loginRepository(Ref ref) {
   return LoginRepositoryImpl(ref.watch(remoteLoginDataSourceProvider));
+}
+
+@riverpod
+GetAuthMeUseCase getAuthMeUseCase(Ref ref) {
+  return GetAuthMeUseCase(ref.watch(loginRepositoryProvider));
 }
 
 @riverpod

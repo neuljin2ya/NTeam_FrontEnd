@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../router/app_router.dart';
+import '../../../../config/theme/figma_colors.dart';
 
 class LoadPage extends StatefulWidget {
   const LoadPage({super.key});
@@ -24,6 +26,7 @@ class _LoadPageState extends State<LoadPage> {
 
   Future<void> _requestPermissionsAndNavigate() async {
     await _requiredPermissions.request();
+    await Future<void>.delayed(const Duration(seconds: 2));
     if (!mounted) {
       return;
     }
@@ -32,6 +35,15 @@ class _LoadPageState extends State<LoadPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: SizedBox.shrink());
+    return Scaffold(
+      backgroundColor: FigmaColors.black,
+      body: Center(
+        child: SvgPicture.asset(
+          'assets/logo.svg',
+          width: 256,
+          height: 256,
+        ),
+      ),
+    );
   }
 }

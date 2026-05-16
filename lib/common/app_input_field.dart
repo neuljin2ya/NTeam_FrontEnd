@@ -20,7 +20,12 @@ class AppInputField extends StatelessWidget {
     this.svgIcon,
     this.state = AppInputFieldState.enabled,
     this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.textInputAction = TextInputAction.done,
+    this.applyPrefixIconColorFilter = true,
     this.obscureText = false,
+    this.readOnly = false,
   });
 
   final TextEditingController? controller;
@@ -42,7 +47,21 @@ class AppInputField extends StatelessWidget {
 
   final ValueChanged<String>? onChanged;
 
+  /// 키보드 완료(검색) 버튼 입력 시 호출
+  final ValueChanged<String>? onSubmitted;
+
+  /// [readOnly]일 때 필드 탭 시 호출 (예: 주소 검색 화면 이동).
+  final VoidCallback? onTap;
+
+  final TextInputAction textInputAction;
+
+  /// false이면 SVG 원본 색상 유지 (예: `icon_search.svg`의 브랜드 컬러)
+  final bool applyPrefixIconColorFilter;
+
   final bool obscureText;
+
+  /// true이면 입력은 막고 [onTap]으로 화면 이동 등을 처리합니다.
+  final bool readOnly;
 
   static const BorderRadius _borderRadius = BorderRadius.all(Radius.circular(8));
 
@@ -55,13 +74,19 @@ class AppInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDisabled = state == AppInputFieldState.disabled;
+    final bool isReadOnly = readOnly || isDisabled;
 
     return SizedBox(
       width: width,
       child: TextField(
         controller: controller,
         enabled: !isDisabled,
+        readOnly: isReadOnly,
+        onTap: onTap,
         onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        textInputAction: textInputAction,
         obscureText: obscureText,
         cursorColor: _textColor,
 
@@ -85,15 +110,14 @@ class AppInputField extends StatelessWidget {
                   ),
                   child: SvgPicture.asset(
                     svgIcon!,
-
                     width: 24,
                     height: 24,
-
-                    /// 상태별 아이콘 색상 변경
-                    colorFilter: ColorFilter.mode(
-                      _iconColor,
-                      BlendMode.srcIn,
-                    ),
+                    colorFilter: applyPrefixIconColorFilter
+                        ? ColorFilter.mode(
+                            _iconColor,
+                            BlendMode.srcIn,
+                          )
+                        : null,
                   ),
                 ),
 

@@ -1,79 +1,248 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../common/app_top_bar.dart';
 import '../../../../common/difficulty_tag.dart';
 import '../../../../common/obstacle_option_card.dart';
+import '../../../../common/spot_difficulty_mapper.dart';
+import '../../../../common/spot_key_label_mapper.dart';
 import '../../../../common/status_action_button.dart';
 import '../../../../common/tag.dart';
+import '../../../../config/theme/app_semantic_colors.dart';
+import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../router/app_router.dart';
+import '../../../../common/spot_video_detail_args.dart';
+import '../../../spot/domain/entity/spot.dart';
+import '../viewmodel/spot_detail_ui_model.dart';
+import '../viewmodel/spot_detail_video_ui_model.dart';
+import '../viewmodel/spot_detail_view_model.dart';
+import '../widget/spot_detail_video_section.dart';
 
-class SpotDetailPage extends StatelessWidget {
-  const SpotDetailPage({super.key});
+class SpotDetailPage extends ConsumerStatefulWidget {
+  const SpotDetailPage({
+    super.key,
+    required this.spotId,
+  });
 
-  static const List<_ObstacleItem> _obstacles = <_ObstacleItem>[
-    _ObstacleItem(label: '계단', svgIcon: 'assets/icons/btn_icon_stair.svg'),
-    _ObstacleItem(label: '높은 벽', svgIcon: 'assets/icons/btn_icon_high.svg'),
-    _ObstacleItem(label: '기둥·줄', svgIcon: 'assets/icons/btn_icon_pole.svg'),
-  ];
+  final int spotId;
 
-  static const List<String> _environmentTags = <String>[
-    '넓은 바닥',
-    '공간 협소',
-    '실내',
-  ];
+  @override
+  ConsumerState<SpotDetailPage> createState() => _SpotDetailPageState();
+}
 
-  static const List<_SpotStatusItem> _statuses = <_SpotStatusItem>[
-    _SpotStatusItem(
-      tags: <String>['상태1', '상태2', '상태3'],
-      review: '스팟 한 줄 후기',
-    ),
-    _SpotStatusItem(
-      tags: <String>['상태1', '상태2', '상태3'],
-      review: '스팟 한 줄 후기',
-    ),
-    _SpotStatusItem(
-      tags: <String>['상태1', '상태2', '상태3'],
-      review: '스팟 한 줄 후기',
-    ),
-  ];
+class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.spotId > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(
+          ref.read(spotDetailViewModelProvider.notifier).loadSpot(widget.spotId),
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final SpotDetailUiModel ui = ref.watch(spotDetailViewModelProvider);
+
+    if (widget.spotId <= 0) {
+      return _SpotDetailScaffold(
+        body: const _SpotDetailMessage(message: '잘못된 스팟 정보입니다.'),
+        onBackPressed: () => _popOrStay(context),
+      );
+    }
+
+    final Widget body = _buildBody(context, ui);
+
+    return _SpotDetailScaffold(
+      onBackPressed: () => _popOrStay(context),
+      body: Stack(
+        children: <Widget>[
+          body,
+          if (ui.isLoading) const _SpotDetailLoadingOverlay(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, SpotDetailUiModel ui) {
+    if (!ui.isLoading && ui.errorMessage != null && ui.spot == null) {
+      return _SpotDetailMessage(message: ui.errorMessage!);
+    }
+
+    final Spot? spot = ui.spot;
+    if (spot == null) {
+      if (ui.isLoading) {
+        return const SizedBox.expand();
+      }
+
+      return const _SpotDetailMessage(message: '스팟 정보를 찾을 수 없습니다.');
+    }
+
+    final List<String> obstacleKeys = spot.features
+        .where(SpotKeyLabelMapper.isObstacleKey)
+        .toList();
+    final List<String> environmentKeys = spot.features
+        .where(SpotKeyLabelMapper.isEnvironmentKey)
+        .toList();
+    final List<String> statusLabels =
+        SpotKeyLabelMapper.mapStatusLabels(spot.statusList);
+
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child: _SpotHero(
+                  imageBytes: ui.captionImageBytes,
+                  onBackPressed: () => _popOrStay(context),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: _DetailPanel(
+                  spot: spot,
+                  obstacleKeys: obstacleKeys,
+                  environmentKeys: environmentKeys,
+                  statusLabels: statusLabels,
+                  videos: ui.videos,
+                  isVideosLoading: ui.isVideosLoading,
+                  onVideoTap: (int index) => _openSpotVideoDetail(
+                    context,
+                    spotName: spot.name,
+                    videos: ui.videos,
+                    initialIndex: index,
+                  ),
+                  onStatusRegistered: () {
+                    unawaited(
+                      ref
+                          .read(spotDetailViewModelProvider.notifier)
+                          .loadSpot(widget.spotId, refresh: true),
+                    );
+                  },
+                  onUploadVideoPressed: () => _openUploadVideo(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        _BottomSaveArea(
+          isLoading: ui.isSavingSpot,
+          onPressed: ui.isSavingSpot
+              ? null
+              : () => unawaited(_saveSpot(context)),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _saveSpot(BuildContext context) async {
+    final String? errorMessage = await ref
+        .read(spotDetailViewModelProvider.notifier)
+        .saveSpot(widget.spotId);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('내 스팟에 저장했습니다.')),
+    );
+  }
+
+  void _popOrStay(BuildContext context) {
+    final GoRouter router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    }
+  }
+
+  void _openUploadVideo(BuildContext context) {
+    unawaited(
+      context
+          .push<bool>('${SGRoute.uploadVideo.route}/${widget.spotId}')
+          .then((bool? didUpload) {
+        if (didUpload ?? false) {
+          unawaited(
+            ref
+                .read(spotDetailViewModelProvider.notifier)
+                .reloadVideos(widget.spotId),
+          );
+        }
+      }),
+    );
+  }
+
+  void _openSpotVideoDetail(
+    BuildContext context, {
+    required String spotName,
+    required List<SpotDetailVideoUiModel> videos,
+    required int initialIndex,
+  }) {
+    if (videos.isEmpty) {
+      return;
+    }
+
+    context.push(
+      SGRoute.spotVideoDetail.route,
+      extra: SpotVideoDetailArgs(
+        spotName: spotName,
+        initialIndex: initialIndex,
+        videos: videos
+            .map(
+              (SpotDetailVideoUiModel video) => SpotVideoDetailItem(
+                videoId: video.videoId,
+                title: video.title,
+                videoUrl: video.videoUrl,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _SpotDetailScaffold extends StatelessWidget {
+  const _SpotDetailScaffold({
+    required this.body,
+    required this.onBackPressed,
+  });
+
+  final Widget body;
+  final VoidCallback onBackPressed;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: FigmaColors.black,
       body: SafeArea(
-        bottom: false,
         child: Column(
           children: <Widget>[
-            Expanded(
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  SliverToBoxAdapter(
-                    child: _SpotHero(
-                      onBackPressed: () {
-                        // TODO: 라우팅 정책 확정 후 이전 화면으로 이동 연결.
-                        final GoRouter router = GoRouter.of(context);
-                        if (router.canPop()) {
-                          router.pop();
-                        }
-                      },
-                    ),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: _DetailPanel(),
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: AppTopBar(
+                  title: '스팟 상세',
+                  onBackPressed: onBackPressed,
+                ),
               ),
             ),
-            _BottomSaveArea(
-              onPressed: () {
-                // TODO: 내 스팟 저장 API 연결.
-              },
-            ),
+            Expanded(child: body),
           ],
         ),
       ),
@@ -81,33 +250,77 @@ class SpotDetailPage extends StatelessWidget {
   }
 }
 
-class _SpotHero extends StatelessWidget {
-  const _SpotHero({required this.onBackPressed});
+class _SpotDetailLoadingOverlay extends StatelessWidget {
+  const _SpotDetailLoadingOverlay();
 
+  @override
+  Widget build(BuildContext context) {
+    return const Positioned.fill(
+      child: ColoredBox(
+        color: FigmaColors.black,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: FigmaColors.primary200,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpotDetailMessage extends StatelessWidget {
+  const _SpotDetailMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppSemanticColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SpotHero extends StatelessWidget {
+  const _SpotHero({
+    required this.imageBytes,
+    required this.onBackPressed,
+  });
+
+  final Uint8List? imageBytes;
   final VoidCallback onBackPressed;
 
   @override
   Widget build(BuildContext context) {
+    final Uint8List? bytes = imageBytes;
+
     return SizedBox(
       height: 364,
       child: Stack(
         children: <Widget>[
           Positioned.fill(
-            top: 58,
-            child: Image.network(
-              // TODO: 스팟 상세 이미지 API 응답 URL로 교체.
-              'https://placehold.co/360x258',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            top: 0,
-            right: 0,
-            child: AppTopBar(
-              title: '스팟 상세',
-              onBackPressed: onBackPressed,
-            ),
+            child: bytes != null && bytes.isNotEmpty
+                ? Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                    errorBuilder: (
+                      BuildContext context,
+                      Object error,
+                      StackTrace? stackTrace,
+                    ) {
+                      return const ColoredBox(color: FigmaColors.gray500);
+                    },
+                  )
+                : const ColoredBox(color: FigmaColors.gray500),
           ),
         ],
       ),
@@ -116,7 +329,27 @@ class _SpotHero extends StatelessWidget {
 }
 
 class _DetailPanel extends StatelessWidget {
-  const _DetailPanel();
+  const _DetailPanel({
+    required this.spot,
+    required this.obstacleKeys,
+    required this.environmentKeys,
+    required this.statusLabels,
+    required this.videos,
+    required this.isVideosLoading,
+    required this.onVideoTap,
+    required this.onStatusRegistered,
+    required this.onUploadVideoPressed,
+  });
+
+  final Spot spot;
+  final List<String> obstacleKeys;
+  final List<String> environmentKeys;
+  final List<String> statusLabels;
+  final List<SpotDetailVideoUiModel> videos;
+  final bool isVideosLoading;
+  final void Function(int index) onVideoTap;
+  final VoidCallback onStatusRegistered;
+  final VoidCallback onUploadVideoPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -128,23 +361,27 @@ class _DetailPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 31, 16, 0),
-            child: _SpotTitleSection(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 31, 16, 0),
+            child: _SpotTitleSection(spot: spot),
           ),
           const SizedBox(height: 40),
-          const _ObstacleSection(),
+          _ObstacleSection(obstacleKeys: obstacleKeys),
           const SizedBox(height: 40),
-          const _EnvironmentSection(),
+          _EnvironmentSection(environmentKeys: environmentKeys),
           const SizedBox(height: 40),
-          const _RecentStatusSection(),
-          _VideoSection(
-            onVideoTap: (int index) {
-              context.push(SGRoute.spotVideoDetail.route, extra: index);
-            },
-            onAddTap: () {
-              context.push(SGRoute.uploadVideo.route);
-            },
+          _RecentStatusSection(
+            spotId: spot.spotId,
+            statusLabels: statusLabels,
+            description: spot.description,
+            onStatusRegistered: onStatusRegistered,
+          ),
+          const SizedBox(height: 40),
+          SpotDetailVideoSection(
+            videos: videos,
+            isLoading: isVideosLoading,
+            onVideoTap: onVideoTap,
+            onUploadPressed: onUploadVideoPressed,
           ),
         ],
       ),
@@ -153,12 +390,14 @@ class _DetailPanel extends StatelessWidget {
 }
 
 class _SpotTitleSection extends StatelessWidget {
-  const _SpotTitleSection();
+  const _SpotTitleSection({required this.spot});
+
+  final Spot spot;
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 180,
+    return SizedBox(
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -166,36 +405,29 @@ class _SpotTitleSection extends StatelessWidget {
             children: <Widget>[
               Flexible(
                 child: Text(
-                  // TODO: 스팟 상세 API의 spotName 연결.
-                  '한남동 골목',
+                  spot.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: AppTextStyles.headlineLarge.copyWith(
                     color: FigmaColors.white,
-                    fontSize: 20,
-                    fontFamily: 'SUIT',
-                    fontWeight: FontWeight.w700,
                     height: 1.42,
                     letterSpacing: -0.4,
                   ),
                 ),
               ),
-              SizedBox(width: 6),
-              // TODO: 스팟 상세 API의 difficulty 값으로 level 매핑.
-              DifficultyTag(level: DifficultyLevel.low),
+              const SizedBox(width: 6),
+              DifficultyTag(
+                level: SpotDifficultyMapper.toLevel(spot.difficulty),
+              ),
             ],
           ),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
-            // TODO: 스팟 상세 API의 address 연결.
-            '서울 용산구 대사관로5길 34',
-            maxLines: 1,
+            spot.fullAddress,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: AppTextStyles.labelSmall.copyWith(
               color: FigmaColors.gray100,
-              fontSize: 12,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w400,
               height: 1.42,
               letterSpacing: -0.12,
             ),
@@ -207,27 +439,34 @@ class _SpotTitleSection extends StatelessWidget {
 }
 
 class _ObstacleSection extends StatelessWidget {
-  const _ObstacleSection();
+  const _ObstacleSection({required this.obstacleKeys});
+
+  final List<String> obstacleKeys;
 
   @override
   Widget build(BuildContext context) {
+    if (obstacleKeys.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return _SectionFrame(
       title: '장애물 유형',
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: SpotDetailPage._obstacles
+          children: obstacleKeys
               .map(
-                (_ObstacleItem item) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ObstacleOptionCard.selected(
-                    text: item.label,
-                    svgIcon: item.svgIcon,
-                    onPressed: () {
-                      // TODO: 장애물 유형 필터/상세 동작 연결 필요 시 구현.
-                    },
-                  ),
-                ),
+                (String key) {
+                  final String? svgIcon = SpotKeyLabelMapper.obstacleSvgIcon(key);
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ObstacleOptionCard.selected(
+                      text: SpotKeyLabelMapper.featureLabel(key),
+                      svgIcon: svgIcon,
+                      onPressed: () {},
+                    ),
+                  );
+                },
               )
               .toList(),
         ),
@@ -237,21 +476,27 @@ class _ObstacleSection extends StatelessWidget {
 }
 
 class _EnvironmentSection extends StatelessWidget {
-  const _EnvironmentSection();
+  const _EnvironmentSection({required this.environmentKeys});
+
+  final List<String> environmentKeys;
 
   @override
   Widget build(BuildContext context) {
+    if (environmentKeys.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return _SectionFrame(
       title: '공간 유형',
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: SpotDetailPage._environmentTags
+          children: environmentKeys
               .map(
-                (String tag) => Padding(
+                (String key) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Tag(
-                    text: tag,
+                    text: SpotKeyLabelMapper.featureLabel(key),
                     backgroundColor: FigmaColors.gray400,
                     borderRadius: 16,
                     fontWeight: FontWeight.w400,
@@ -266,7 +511,17 @@ class _EnvironmentSection extends StatelessWidget {
 }
 
 class _RecentStatusSection extends StatelessWidget {
-  const _RecentStatusSection();
+  const _RecentStatusSection({
+    required this.spotId,
+    required this.statusLabels,
+    required this.description,
+    required this.onStatusRegistered,
+  });
+
+  final int spotId;
+  final List<String> statusLabels;
+  final String description;
+  final VoidCallback onStatusRegistered;
 
   @override
   Widget build(BuildContext context) {
@@ -277,14 +532,11 @@ class _RecentStatusSection extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Expanded(
+              Expanded(
                 child: Text(
                   '최근 스팟 상태',
-                  style: TextStyle(
+                  style: AppTextStyles.bodyMedium.copyWith(
                     color: FigmaColors.gray100,
-                    fontSize: 14,
-                    fontFamily: 'SUIT',
-                    fontWeight: FontWeight.w400,
                     height: 1.5,
                   ),
                 ),
@@ -292,34 +544,49 @@ class _RecentStatusSection extends StatelessWidget {
               StatusActionButton(
                 text: '상태 남기기',
                 onPressed: () {
-                  _showSpotDetailModal(context);
+                  unawaited(_showSpotDetailModal(context));
                 },
               ),
             ],
           ),
           const SizedBox(height: 12),
-          ...SpotDetailPage._statuses.indexed.map(
-            ((int, _SpotStatusItem) entry) => Padding(
-              padding: EdgeInsets.only(
-                  bottom:
-                      entry.$1 < SpotDetailPage._statuses.length - 1 ? 8 : 24),
-              child: _StatusCard(item: entry.$2),
+          if (statusLabels.isNotEmpty || description.isNotEmpty)
+            _StatusCard(
+              statusLabels: statusLabels,
+              description: description,
+            )
+          else
+            Text(
+              '등록된 스팟 상태가 없어요.',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: FigmaColors.gray100,
+                height: 1.5,
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  void _showSpotDetailModal(BuildContext context) {
-    context.push(SGRoute.spotDetailStatus.route);
+  Future<void> _showSpotDetailModal(BuildContext context) async {
+    final bool? didRegister = await context.push<bool>(
+      '${SGRoute.spotDetailStatus.route}/$spotId',
+    );
+
+    if ((didRegister ?? false) && context.mounted) {
+      onStatusRegistered();
+    }
   }
 }
 
 class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.item});
+  const _StatusCard({
+    required this.statusLabels,
+    required this.description,
+  });
 
-  final _SpotStatusItem item;
+  final List<String> statusLabels;
+  final String description;
 
   @override
   Widget build(BuildContext context) {
@@ -333,251 +600,58 @@ class _StatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: item.tags
-                .map(
-                  (String tag) => Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Tag(
+          if (statusLabels.isNotEmpty)
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: statusLabels
+                  .map(
+                    (String tag) => Tag(
                       text: tag,
                       backgroundColor: FigmaColors.gray400,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 2),
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       borderRadius: 2,
-                      fontSize: 12,
                       fontWeight: FontWeight.w400,
                     ),
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            // TODO: 최근 스팟 상태 API의 한 줄 후기 연결.
-            item.review,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: FigmaColors.white,
-              fontSize: 16,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w700,
-              height: 1.42,
-              letterSpacing: -0.16,
+                  )
+                  .toList(),
             ),
-          ),
+          if (description.isNotEmpty) ...<Widget>[
+            if (statusLabels.isNotEmpty) const SizedBox(height: 10),
+            Text(
+              description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: FigmaColors.white,
+                fontWeight: FontWeight.w700,
+                height: 1.42,
+                letterSpacing: -0.16,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _VideoSection extends StatefulWidget {
-  const _VideoSection({
-    required this.onVideoTap,
-    required this.onAddTap,
-  });
-
-  final ValueChanged<int> onVideoTap;
-  final VoidCallback onAddTap;
-
-  @override
-  State<_VideoSection> createState() => _VideoSectionState();
-}
-
-class _VideoSectionState extends State<_VideoSection> {
-  bool _showHint = false;
-  Timer? _hintTimer;
-
-  @override
-  void dispose() {
-    _hintTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: <Widget>[
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-          color: FigmaColors.primary600,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  const Expanded(
-                    child: Text(
-                      '이 스팟에서 남겨진 영상 보기',
-                      style: TextStyle(
-                        color: FigmaColors.white,
-                        fontSize: 16,
-                        fontFamily: 'SUIT',
-                        fontWeight: FontWeight.w400,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: widget.onAddTap,
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(Icons.add,
-                                color: FigmaColors.primary300, size: 20),
-                            SizedBox(width: 4),
-                            Text(
-                              '영상 업로드하기',
-                              style: TextStyle(
-                                color: FigmaColors.primary300,
-                                fontSize: 16,
-                                fontFamily: 'SUIT',
-                                fontWeight: FontWeight.w400,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onLongPress: () {
-                          _hintTimer =
-                              Timer(const Duration(milliseconds: 250), () {
-                            setState(() => _showHint = true);
-                          });
-                        },
-                        onLongPressEnd: (_) {
-                          _hintTimer?.cancel();
-                          setState(() => _showHint = false);
-                        },
-                        child: const Icon(
-                          Icons.info_outline,
-                          color: FigmaColors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: <Widget>[
-                  _VideoTile(
-                    color: FigmaColors.gray200,
-                    thumbnailUrl:
-                        'https://www.figma.com/api/mcp/asset/d3ab41a6-5842-4033-83b9-832da461d003',
-                    onPressed: () => widget.onVideoTap(0),
-                  ),
-                  const SizedBox(width: 12),
-                  _VideoTile(
-                    color: FigmaColors.gray200,
-                    onPressed: () => widget.onVideoTap(1),
-                  ),
-                  const SizedBox(width: 12),
-                  _VideoTile(
-                    color: FigmaColors.gray300,
-                    onPressed: () => widget.onVideoTap(1),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        if (_showHint)
-          Positioned(
-            top: -24,
-            right: 16,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 198),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: FigmaColors.gray400,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                '영상은 1분 내외 100mb까지만\n등록 가능해요',
-                style: TextStyle(
-                  color: FigmaColors.gray100,
-                  fontSize: 14,
-                  fontFamily: 'SUIT',
-                  fontWeight: FontWeight.w400,
-                  height: 1.42,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _VideoTile extends StatelessWidget {
-  const _VideoTile({
-    required this.color,
-    required this.onPressed,
-    this.thumbnailUrl,
-  });
-
-  final Color color;
-  final VoidCallback onPressed;
-  final String? thumbnailUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onPressed,
-      child: Container(
-        width: 82,
-        height: 112,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          image: thumbnailUrl == null
-              ? null
-              : DecorationImage(
-                  image: NetworkImage(thumbnailUrl!),
-                  fit: BoxFit.cover,
-                ),
-        ),
-        child: Center(
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0x33000000),
-            ),
-            child: const Icon(
-              Icons.play_circle_outline,
-              color: FigmaColors.white,
-              size: 36,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _BottomSaveArea extends StatelessWidget {
-  const _BottomSaveArea({required this.onPressed});
+  const _BottomSaveArea({
+    required this.onPressed,
+    this.isLoading = false,
+  });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
+    final bool isEnabled = onPressed != null && !isLoading;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -589,26 +663,32 @@ class _BottomSaveArea extends StatelessWidget {
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
+        onTap: isEnabled ? onPressed : null,
         child: Container(
           width: double.infinity,
           height: 60,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: FigmaColors.primary100,
+            color: isEnabled ? FigmaColors.primary100 : FigmaColors.gray500,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Text(
-            '내 스팟으로 저장',
-            style: TextStyle(
-              color: FigmaColors.black,
-              fontSize: 20,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w700,
-              height: 1.42,
-              letterSpacing: -0.4,
-            ),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: FigmaColors.black,
+                  ),
+                )
+              : Text(
+                  '내 스팟으로 저장',
+                  style: AppTextStyles.buttonMedium.copyWith(
+                    color: FigmaColors.black,
+                    height: 1.42,
+                    letterSpacing: -0.4,
+                  ),
+                ),
         ),
       ),
     );
@@ -633,11 +713,8 @@ class _SectionFrame extends StatelessWidget {
         children: <Widget>[
           Text(
             title,
-            style: const TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: FigmaColors.gray100,
-              fontSize: 14,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w400,
               height: 1.5,
             ),
           ),
@@ -647,24 +724,4 @@ class _SectionFrame extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ObstacleItem {
-  const _ObstacleItem({
-    required this.label,
-    required this.svgIcon,
-  });
-
-  final String label;
-  final String svgIcon;
-}
-
-class _SpotStatusItem {
-  const _SpotStatusItem({
-    required this.tags,
-    required this.review,
-  });
-
-  final List<String> tags;
-  final String review;
 }

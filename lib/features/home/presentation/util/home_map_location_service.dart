@@ -7,13 +7,35 @@ import 'package:geolocator/geolocator.dart';
 import '../../../../config/theme/figma_colors.dart';
 
 /// 홈 지도에서 [Geolocator]로 위치를 받아 [NLocationOverlay]에 반영합니다.
-final class HomeMapLocationService {
+final class HomeMapLocationService extends ChangeNotifier {
+  static const double _cameraZoom = 15;
+
   StreamSubscription<Position>? _positionSubscription;
   NaverMapController? _mapController;
   NLocationOverlay? _locationOverlay;
   Position? _lastPosition;
+  bool _isLoadingInitialLocation = true;
+  double _bottomOverlayFraction = 0.4;
 
   Position? get lastPosition => _lastPosition;
+  bool get isLoadingInitialLocation => _isLoadingInitialLocation;
+
+  /// 바텀시트 등 하단 UI가 가리는 비율(0~1). 카메라 피벗 계산에 사용합니다.
+  void setBottomOverlayFraction(double fraction) {
+    _bottomOverlayFraction = fraction.clamp(0, 0.9);
+  }
+
+  /// 가려지지 않은 지도 영역의 세로 중앙에 위치가 오도록 피벗을 잡습니다.
+  NPoint get _locationPivot =>
+      NPoint(0.5, (1 - _bottomOverlayFraction) / 2);
+
+  void _setLoadingInitialLocation(bool value) {
+    if (_isLoadingInitialLocation == value) {
+      return;
+    }
+    _isLoadingInitialLocation = value;
+    notifyListeners();
+  }
 
   Future<bool> ensurePermission() async {
     final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -31,36 +53,43 @@ final class HomeMapLocationService {
   }
 
   Future<void> attach(NaverMapController controller) async {
-    _mapController = controller;
-    _locationOverlay = controller.getLocationOverlay();
-    _configureOverlay(_locationOverlay!);
-
-    if (!await ensurePermission()) {
-      return;
-    }
-
+    _setLoadingInitialLocation(true);
     try {
-      await _applyPosition(
-        await Geolocator.getCurrentPosition(
+      _mapController = controller;
+      _locationOverlay = controller.getLocationOverlay();
+      _configureOverlay(_locationOverlay!);
+
+      if (!await ensurePermission()) {
+        return;
+      }
+
+      try {
+        final Position position = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
           ),
-        ),
-      );
-    } on LocationServiceDisabledException {
-      return;
-    } on PermissionDeniedException {
-      return;
-    }
+        );
+        await _applyPosition(position);
+        await _moveCameraTo(
+          NLatLng(position.latitude, position.longitude),
+        );
+      } on LocationServiceDisabledException {
+        return;
+      } on PermissionDeniedException {
+        return;
+      }
 
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen((Position position) {
-      unawaited(_applyPosition(position));
-    });
+      _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5,
+        ),
+      ).listen((Position position) {
+        unawaited(_applyPosition(position));
+      });
+    } finally {
+      _setLoadingInitialLocation(false);
+    }
   }
 
   void _configureOverlay(NLocationOverlay overlay) {
@@ -126,16 +155,37 @@ final class HomeMapLocationService {
       overlay.setBearing(bearing);
     }
 
-    await controller.updateCamera(
-      NCameraUpdate.scrollAndZoomTo(target: target, zoom: 15),
-    );
+    await _moveCameraTo(target);
   }
 
+  Future<void> moveToCoordinates({
+    required double latitude,
+    required double longitude,
+  }) async {
+    await _moveCameraTo(NLatLng(latitude, longitude));
+  }
+
+  Future<void> _moveCameraTo(NLatLng target) async {
+    final NaverMapController? controller = _mapController;
+    if (controller == null) {
+      return;
+    }
+
+    final NCameraUpdate update = NCameraUpdate.scrollAndZoomTo(
+      target: target,
+      zoom: _cameraZoom,
+    )..setPivot(_locationPivot);
+
+    await controller.updateCamera(update);
+  }
+
+  @override
   void dispose() {
     unawaited(_positionSubscription?.cancel());
     _positionSubscription = null;
     _mapController = null;
     _locationOverlay = null;
     _lastPosition = null;
+    super.dispose();
   }
 }

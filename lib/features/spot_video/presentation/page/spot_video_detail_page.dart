@@ -1,61 +1,85 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../../../common/app_top_bar.dart';
+import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
+import '../../../../common/spot_video_detail_args.dart';
 
-class SpotVideoDetailPage extends StatelessWidget {
+class SpotVideoDetailPage extends StatefulWidget {
   const SpotVideoDetailPage({
     super.key,
-    this.initialIndex = 0,
+    required this.args,
   });
 
-  final int initialIndex;
+  final SpotVideoDetailArgs args;
 
-  static const List<_SpotVideoItem> _dummyVideos = <_SpotVideoItem>[
-    _SpotVideoItem(
-      spotName: '한남동 골목',
-      authorName: '파쿠르왕',
-      thumbnailUrl:
-          'https://www.figma.com/api/mcp/asset/d3ab41a6-5842-4033-83b9-832da461d003',
-      skillTags: <String>['Kong vault', 'Percision', 'Cat leap'],
-      memo: '한줄메모한줄메모한줄메모한줄메모한줄메모한줄메모한줄메모한줄메모한줄메모한줄',
-    ),
-    _SpotVideoItem(
-      spotName: '한남동 골목',
-      authorName: '두번째 영상',
-      thumbnailUrl:
-          'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=900&q=80',
-      skillTags: <String>['Wall run', 'Landing'],
-      memo: '두 번째 더미 영상입니다. 여기서 아래로 더 내려가지 않으면 마지막 영상 테스트 성공입니다.',
-    ),
-  ];
+  @override
+  State<SpotVideoDetailPage> createState() => _SpotVideoDetailPageState();
+}
+
+class _SpotVideoDetailPageState extends State<SpotVideoDetailPage> {
+  late final PageController _pageController;
+  List<SpotVideoDetailItem> get _videos => widget.args.videos;
+
+  @override
+  void initState() {
+    super.initState();
+    final int maxIndex = _videos.isEmpty ? 0 : _videos.length - 1;
+    final int initialIndex = widget.args.initialIndex.clamp(0, maxIndex);
+    _pageController = PageController(initialPage: initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final int safeInitialIndex = initialIndex.clamp(
-      0,
-      _dummyVideos.length - 1,
-    );
+    if (_videos.isEmpty) {
+      return Scaffold(
+        backgroundColor: FigmaColors.black,
+        body: Stack(
+          children: <Widget>[
+            const Center(
+              child: Text(
+                '재생할 영상이 없습니다.',
+                style: TextStyle(color: FigmaColors.white),
+              ),
+            ),
+            SafeArea(
+              bottom: false,
+              child: AppTopBar(
+                title: widget.args.spotName,
+                onBackPressed: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: FigmaColors.black,
       body: Stack(
         children: <Widget>[
           PageView.builder(
-            controller: PageController(initialPage: safeInitialIndex),
+            controller: _pageController,
             scrollDirection: Axis.vertical,
-            itemCount: _dummyVideos.length,
+            itemCount: _videos.length,
             itemBuilder: (BuildContext context, int index) {
-              return _SpotVideoPage(video: _dummyVideos[index]);
+              return _SpotVideoPage(video: _videos[index]);
             },
           ),
           SafeArea(
             bottom: false,
             child: AppTopBar(
-              title: _dummyVideos[safeInitialIndex].spotName,
-              onBackPressed: () {
-                Navigator.of(context).maybePop();
-              },
+              title: widget.args.spotName,
+              onBackPressed: () => Navigator.of(context).maybePop(),
             ),
           ),
         ],
@@ -64,22 +88,83 @@ class SpotVideoDetailPage extends StatelessWidget {
   }
 }
 
-class _SpotVideoPage extends StatelessWidget {
+class _SpotVideoPage extends StatefulWidget {
   const _SpotVideoPage({required this.video});
 
-  final _SpotVideoItem video;
+  final SpotVideoDetailItem video;
+
+  @override
+  State<_SpotVideoPage> createState() => _SpotVideoPageState();
+}
+
+class _SpotVideoPageState extends State<_SpotVideoPage> {
+  String? _thumbnailPath;
+  bool _isThumbnailLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThumbnail();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SpotVideoPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.video.videoUrl != widget.video.videoUrl) {
+      _loadThumbnail();
+    }
+  }
+
+  Future<void> _loadThumbnail() async {
+    setState(() {
+      _isThumbnailLoading = true;
+      _thumbnailPath = null;
+    });
+
+    try {
+      final String? thumbnailPath = await VideoThumbnail.thumbnailFile(
+        video: widget.video.videoUrl,
+        imageFormat: ImageFormat.JPEG,
+        quality: 75,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _thumbnailPath = thumbnailPath;
+        _isThumbnailLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isThumbnailLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final String? thumbnailPath = _thumbnailPath;
+
     return Stack(
       children: <Widget>[
         Positioned.fill(
-          child: Image.network(
-            // TODO: 영상 상세 API의 썸네일/영상 URL로 교체.
-            video.thumbnailUrl,
-            fit: BoxFit.cover,
-          ),
+          child: thumbnailPath != null
+              ? Image.file(
+                  File(thumbnailPath),
+                  fit: BoxFit.cover,
+                )
+              : const ColoredBox(color: FigmaColors.gray500),
         ),
+        if (_isThumbnailLoading)
+          const Center(
+            child: CircularProgressIndicator(color: FigmaColors.primary200),
+          ),
         const Positioned(
           top: 0,
           left: 0,
@@ -122,7 +207,7 @@ class _SpotVideoPage extends StatelessWidget {
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 48),
-              child: _VideoMetaContent(video: video),
+              child: _VideoMetaContent(title: widget.video.title),
             ),
           ),
         ),
@@ -132,110 +217,25 @@ class _SpotVideoPage extends StatelessWidget {
 }
 
 class _VideoMetaContent extends StatelessWidget {
-  const _VideoMetaContent({required this.video});
+  const _VideoMetaContent({required this.title});
 
-  final _SpotVideoItem video;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          // TODO: 영상 상세 API의 작성자/닉네임으로 교체.
-          video.authorName,
-          style: const TextStyle(
-            color: FigmaColors.white,
-            fontSize: 24,
-            fontFamily: 'SUIT',
-            fontWeight: FontWeight.w700,
-            height: 1.42,
-            letterSpacing: -0.4,
-          ),
-        ),
-        const SizedBox(height: 14),
-        _SkillTagRow(tags: video.skillTags),
-        const SizedBox(height: 14),
-        Text(
-          // TODO: 영상 상세 API의 한 줄 설명으로 교체.
-          video.memo,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: FigmaColors.white,
-            fontSize: 18,
-            fontFamily: 'SUIT',
-            fontWeight: FontWeight.w700,
-            height: 1.42,
-            letterSpacing: -0.16,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SkillTagRow extends StatelessWidget {
-  const _SkillTagRow({required this.tags});
-
-  final List<String> tags;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: tags
-          .map<Widget>(
-            (String tag) => Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: _SkillChip(text: tag),
-            ),
-          )
-          .toList(),
-    );
-  }
-}
+    if (title.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-class _SpotVideoItem {
-  const _SpotVideoItem({
-    required this.spotName,
-    required this.authorName,
-    required this.thumbnailUrl,
-    required this.skillTags,
-    required this.memo,
-  });
-
-  final String spotName;
-  final String authorName;
-  final String thumbnailUrl;
-  final List<String> skillTags;
-  final String memo;
-}
-
-class _SkillChip extends StatelessWidget {
-  const _SkillChip({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: FigmaColors.primary600,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        maxLines: 1,
-        style: const TextStyle(
-          color: FigmaColors.primary50,
-          fontSize: 16,
-          fontFamily: 'SUIT',
-          fontWeight: FontWeight.w400,
-          height: 1.5,
-        ),
+    return Text(
+      title,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+      style: AppTextStyles.headlineLarge.copyWith(
+        color: FigmaColors.white,
+        fontSize: 24,
+        height: 1.42,
+        letterSpacing: -0.4,
       ),
     );
   }

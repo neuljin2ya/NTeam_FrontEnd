@@ -3,44 +3,94 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../common/app_input_field.dart';
 import '../../../../config/theme/figma_colors.dart';
+import '../../../../domain/maps/entity/map_location.dart';
+import '../../../../router/app_router.dart';
 import '../util/home_map_location_service.dart';
+import '../viewmodel/home_ui_model.dart';
+import '../viewmodel/home_view_model.dart';
 import '../widget/home_bottom_sheet_widget.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   static const double _minSheetSizeRatio = 0.4;
   static const double _maxSheetSize = 0.85;
   static const Duration _sheetAnimationDuration = Duration(milliseconds: 260);
 
+  static const String _searchIconAsset = 'assets/icons/icon_search.svg';
+  static const double _searchFieldHorizontalPadding = 16;
+
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
+  final TextEditingController _searchController = TextEditingController();
   final HomeMapLocationService _locationService = HomeMapLocationService();
   DateTime? _lastBackPressedAt;
   double _currentSheetSize = 0;
   double _minSheetSize = 0;
   double _maxSheetSizeByViewport = _maxSheetSize;
 
+  HomeViewModel get _homeViewModel => ref.read(homeViewModelProvider.notifier);
+
   @override
   void initState() {
     super.initState();
     _sheetController.addListener(_onSheetSizeChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_homeViewModel.loadAllSpots());
+    });
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _locationService.dispose();
     _sheetController
       ..removeListener(_onSheetSizeChanged)
       ..dispose();
     super.dispose();
+  }
+
+  Future<void> onSearchSubmitted(String query) async {
+    final String trimmed = query.trim();
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    if (trimmed.isEmpty) {
+      await _homeViewModel.loadAllSpots();
+      return;
+    }
+
+    final Position? near = _locationService.lastPosition;
+    final MapLocation? location = await _homeViewModel.searchLocation(
+      query: trimmed,
+      nearLatitude: near?.latitude,
+      nearLongitude: near?.longitude,
+    );
+
+    if (!mounted || location == null) {
+      return;
+    }
+
+    final double sheetFraction = _sheetController.isAttached
+        ? _sheetController.size
+        : _minSheetSize;
+    _locationService.setBottomOverlayFraction(sheetFraction);
+    await _locationService.moveToCoordinates(
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
+    await _homeViewModel.loadSpotsForLocation(location);
   }
 
   void _onSheetSizeChanged() {
@@ -67,6 +117,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _moveToCurrentLocation() async {
+    final double sheetFraction = _sheetController.isAttached
+        ? _sheetController.size
+        : _minSheetSize;
+    _locationService.setBottomOverlayFraction(sheetFraction);
     await _locationService.moveToCurrentLocation();
   }
 
@@ -112,6 +166,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final HomeUiModel homeState = ref.watch(homeViewModelProvider);
+    final bool isSpotBusy =
+        homeState.isLoadingSpots || homeState.isSearchingLocation;
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _minSheetSize = _minSheetSizeRatio.clamp(0.2, _maxSheetSize);
@@ -129,52 +187,129 @@ class _HomePageState extends State<HomePage> {
             await _handleBackPressed();
           },
           child: Scaffold(
-            body: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                _BasicNaverMapPreview(
-                  onMapReady: (NaverMapController controller) {
-                    unawaited(_locationService.attach(controller));
-                  },
-                ),
-                DraggableScrollableSheet(
-                  controller: _sheetController,
-                  initialChildSize: _minSheetSize,
-                  minChildSize: _minSheetSize,
-                  maxChildSize: _maxSheetSizeByViewport,
-                  snap: true,
-                  snapSizes: <double>[_minSheetSize, _maxSheetSizeByViewport],
-                  expand: false,
-                  builder: (
-                    BuildContext context,
-                    ScrollController scrollController,
-                  ) {
-                    return HomeBottomSheetWidget(
-                      scrollController: scrollController,
-                      onHandleTap: _toggleSheetByHandle,
-                    );
-                  },
-                ),
-                ListenableBuilder(
-                  listenable: _sheetController,
-                  builder: (BuildContext context, Widget? child) {
-                    final double sheetSize = _sheetController.isAttached
-                        ? _sheetController.size
-                        : _minSheetSize;
-                    return Positioned(
-                      right: 16,
-                      bottom: (constraints.maxHeight * sheetSize) + 12,
-                      child: _CurrentLocationButton(
-                        onTap: _moveToCurrentLocation,
+            body: ListenableBuilder(
+              listenable: _locationService,
+              builder: (BuildContext context, Widget? child) {
+                final bool isLoadingInitialLocation =
+                    _locationService.isLoadingInitialLocation;
+
+                final double searchFieldWidth =
+                    constraints.maxWidth - (_searchFieldHorizontalPadding * 2);
+
+                return Stack(
+                  fit: StackFit.expand,
+                  children: <Widget>[
+                    _BasicNaverMapPreview(
+                      onMapReady: (NaverMapController controller) {
+                        _locationService.setBottomOverlayFraction(_minSheetSize);
+                        unawaited(_locationService.attach(controller));
+                      },
+                    ),
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: SafeArea(
+                        bottom: false,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            _searchFieldHorizontalPadding,
+                            8,
+                            _searchFieldHorizontalPadding,
+                            0,
+                          ),
+                          child: AppInputField(
+                            controller: _searchController,
+                            hintText: '원하는 지역을 입력해주세요',
+                            width: searchFieldWidth,
+                            svgIcon: _searchIconAsset,
+                            applyPrefixIconColorFilter: false,
+                            textInputAction: TextInputAction.search,
+                            state: isSpotBusy
+                                ? AppInputFieldState.disabled
+                                : AppInputFieldState.enabled,
+                            onSubmitted: (String value) {
+                              unawaited(onSearchSubmitted(value));
+                            },
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                    if (!isLoadingInitialLocation) ...<Widget>[
+                      DraggableScrollableSheet(
+                        controller: _sheetController,
+                        initialChildSize: _minSheetSize,
+                        minChildSize: _minSheetSize,
+                        maxChildSize: _maxSheetSizeByViewport,
+                        snap: true,
+                        snapSizes: <double>[
+                          _minSheetSize,
+                          _maxSheetSizeByViewport,
+                        ],
+                        expand: false,
+                        builder: (
+                          BuildContext context,
+                          ScrollController scrollController,
+                        ) {
+                          return HomeBottomSheetWidget(
+                            scrollController: scrollController,
+                            onHandleTap: _toggleSheetByHandle,
+                            spots: homeState.spots,
+                            isLoading:
+                                homeState.isLoadingSpots ||
+                                homeState.isSearchingLocation,
+                            errorMessage: homeState.spotsErrorMessage,
+                          );
+                        },
+                      ),
+                      ListenableBuilder(
+                        listenable: _sheetController,
+                        builder: (BuildContext context, Widget? child) {
+                          final double sheetSize = _sheetController.isAttached
+                              ? _sheetController.size
+                              : _minSheetSize;
+                          return Positioned(
+                            right: 16,
+                            bottom: (constraints.maxHeight * sheetSize) + 12,
+                            child: _CurrentLocationButton(
+                              onTap: homeState.isSearchingLocation
+                                  ? null
+                                  // : _moveToCurrentLocation,
+                                  : () => context.push(SGRoute.newSpot.route),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                    if (isLoadingInitialLocation)
+                      const _HomeMapLoadingOverlay(),
+                  ],
+                );
+              },
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _HomeMapLoadingOverlay extends StatelessWidget {
+  const _HomeMapLoadingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ColoredBox(
+          color: FigmaColors.black.withValues(alpha: 0.55),
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: FigmaColors.primary200,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -202,7 +337,7 @@ class _BasicNaverMapPreview extends StatelessWidget {
 class _CurrentLocationButton extends StatelessWidget {
   const _CurrentLocationButton({required this.onTap});
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

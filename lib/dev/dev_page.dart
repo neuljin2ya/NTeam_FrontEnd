@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:go_router/go_router.dart';
 
+import '../router/app_router.dart';
 import 'map_location_picker_page.dart';
+import 'media_picker_test_page.dart';
 
 class DevPage extends StatelessWidget {
   const DevPage({super.key});
@@ -12,6 +15,25 @@ class DevPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Dev')),
       body: ListView(
         children: <Widget>[
+          ListTile(
+            title: const Text('이미지 · 영상 선택'),
+            subtitle: const Text('이미지·영상 갤러리 (영상 압축 후 100MB 이하)'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) =>
+                      const MediaPickerTestPage(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('새 스팟 등록'),
+            subtitle: const Text('Figma 4. 스팟 정보 등록 화면'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(SGRoute.newSpot.route),
+          ),
           ListTile(
             title: const Text('위치 · 주소 선택 (Geocoding)'),
             subtitle: const Text('주소·건물명 검색 또는 지도 드래그로 좌표·주소 조회'),
