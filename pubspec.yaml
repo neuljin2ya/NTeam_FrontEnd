@@ -93,7 +93,6 @@ flutter:
     - .env
     - assets/img/
     - assets/icons/
-    - assets/icons/app_input_field_icon.svg
 #  fonts:
 
   # To add assets to your application, add an assets section, like this:

@@ -9,7 +9,11 @@ import 'package:parkou_route/common/app_button.dart';
 import 'package:parkou_route/common/app_input_field.dart';
 import 'package:parkou_route/common/app_modal.dart';
 import 'package:parkou_route/common/app_top_bar.dart';
+import 'package:parkou_route/common/condition_option_card.dart';
+import 'package:parkou_route/common/obstacle_option_card.dart';
+import 'package:parkou_route/common/status_action_button.dart';
 import 'package:parkou_route/common/tab_button.dart';
+import 'package:parkou_route/common/tab_fold_button.dart';
 import 'package:parkou_route/common/tab_underline_button.dart';
 import 'package:parkou_route/common/tag.dart';
 import 'package:parkou_route/config/theme/figma_colors.dart';
@@ -107,6 +111,38 @@ TabUnderlineButton(
 )
 ```
 
+## TabFoldButton
+
+```text
+TabFoldButton(
+  text: '추천',
+  isExpanded: false,
+  onPressed: () {},
+)
+
+TabFoldButton(
+  text: '추천',
+  isExpanded: true,
+  onPressed: () {},
+)
+
+TabFoldButton(
+  text: '추천',
+  showLeading: true,
+  isExpanded: false,
+)
+
+TabFoldButton(
+  text: '추천',
+  leading: Icon(
+    Icons.error_outline,
+    color: FigmaColors.white,
+    size: 24,
+  ),
+  iconColor: FigmaColors.gray100,
+)
+```
+
 ## Tag
 
 ```text
@@ -126,6 +162,95 @@ Tag(
   borderColor: FigmaColors.gray300,
   textColor: FigmaColors.white,
   borderRadius: 8,
+)
+```
+
+## StatusActionButton
+
+```text
+StatusActionButton(
+  text: '상태 남기기',
+  onPressed: () {},
+)
+
+StatusActionButton(
+  text: '상태 남기기',
+  color: FigmaColors.primary300,
+  icon: Icons.add,
+  onPressed: () {},
+)
+
+const StatusActionButton.disabled(
+  text: '상태 남기기',
+)
+
+StatusActionButton(
+  text: '상태 남기기',
+  color: FigmaColors.gray100,
+  iconWidget: Icon(
+    Icons.add,
+    color: FigmaColors.gray100,
+    size: 16,
+  ),
+)
+```
+
+## ObstacleOptionCard
+
+```text
+ObstacleOptionCard(
+  text: '계단',
+  svgIcon: 'assets/icons/btn_icon_stair.svg',
+  onPressed: () {},
+)
+
+ObstacleOptionCard.selected(
+  text: '계단',
+  svgIcon: 'assets/icons/btn_icon_stair.svg',
+  onPressed: () {},
+)
+
+ObstacleOptionCard(
+  text: '낮은 벽',
+  svgIcon: 'assets/icons/btn_icon_short.svg',
+  backgroundColor: FigmaColors.gray300,
+  textColor: FigmaColors.white,
+  iconColor: FigmaColors.white,
+)
+
+ObstacleOptionCard(
+  text: '난간·바',
+  svgIcon: 'assets/icons/btn_icon_bar.svg',
+)
+
+ObstacleOptionCard(
+  text: '벤치·테이블',
+  svgIcon: 'assets/icons/btn_icon_bench.svg',
+)
+```
+
+## ConditionOptionCard
+
+```text
+ConditionOptionCard(
+  title: '쾌적함',
+  description: '사람 적고 상태 양호',
+  onPressed: () {},
+)
+
+ConditionOptionCard.selected(
+  title: '쾌적함',
+  description: '사람 적고 상태 양호',
+  onPressed: () {},
+)
+
+ConditionOptionCard(
+  title: '혼잡함',
+  description: '사람 많고 이용 어려움',
+  backgroundColor: FigmaColors.gray400,
+  borderColor: FigmaColors.primary100,
+  titleColor: FigmaColors.primary50,
+  descriptionColor: FigmaColors.primary50,
 )
 ```
 
