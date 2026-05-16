@@ -51,26 +51,38 @@ class Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget label = Text(
+      text,
+      style: AppTextStyles.labelMedium.copyWith(
+        color: textColor,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+      ),
+    );
+
+    final ShapeDecoration decoration = ShapeDecoration(
+      color: backgroundColor,
+      shape: RoundedRectangleBorder(
+        side: _borderSide,
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+    );
+
+    if (width != null || height != null) {
+      return Container(
+        width: width,
+        height: height,
+        padding: padding,
+        alignment: Alignment.center,
+        decoration: decoration,
+        child: label,
+      );
+    }
+
     return Container(
-      width: width,
-      height: height,
       padding: padding,
-      alignment: Alignment.center,
-      decoration: ShapeDecoration(
-        color: backgroundColor,
-        shape: RoundedRectangleBorder(
-          side: _borderSide,
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-      ),
-      child: Text(
-        text,
-        style: AppTextStyles.labelMedium.copyWith(
-          color: textColor,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-        ),
-      ),
+      decoration: decoration,
+      child: label,
     );
   }
 

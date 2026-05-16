@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../constants/endpoints.dart';
+import '../datasources/api_logging_interceptor.dart';
 import '../datasources/device_token_interceptor.dart';
 import '../local/device_token_storage.dart';
 import 'device_token_storage_provider.dart';
@@ -24,5 +25,7 @@ Dio backendDio(Ref ref) {
       },
       validateStatus: (int? status) => status != null && status < 500,
     ),
-  )..interceptors.add(DeviceTokenInterceptor(storage));
+  )
+    ..interceptors.add(DeviceTokenInterceptor(storage))
+    ..interceptors.add(ApiLoggingInterceptor());
 }

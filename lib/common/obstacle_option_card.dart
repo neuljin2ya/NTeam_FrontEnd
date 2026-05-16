@@ -16,8 +16,10 @@ class ObstacleOptionCard extends StatelessWidget {
     this.backgroundColor = FigmaColors.gray300,
     this.textColor = FigmaColors.white,
     this.iconColor = FigmaColors.white,
-    this.width = 90,
-    this.height = 90,
+    this.borderColor,
+    this.borderWidth = 1,
+    this.width = 100,
+    this.height = 100,
     this.padding = const EdgeInsets.all(12),
     this.borderRadius = 12,
     this.iconSize = 30,
@@ -31,14 +33,16 @@ class ObstacleOptionCard extends StatelessWidget {
     this.icon,
     this.svgIcon,
     this.iconWidget,
-    this.backgroundColor = FigmaColors.primary600,
+    this.backgroundColor = FigmaColors.primary700,
     this.textColor = FigmaColors.primary50,
     this.iconColor = FigmaColors.primary50,
-    this.width = 90,
-    this.height = 90,
+    this.borderColor = FigmaColors.primaryMain,
+    this.borderWidth = 1,
+    this.width = 100,
+    this.height = 100,
     this.padding = const EdgeInsets.all(12),
     this.borderRadius = 12,
-    this.iconSize = 24,
+    this.iconSize = 30,
     this.spacing = 4,
   });
 
@@ -65,6 +69,12 @@ class ObstacleOptionCard extends StatelessWidget {
 
   /// 아이콘 색상
   final Color iconColor;
+
+  /// 카드 테두리 색상. null이면 테두리 없음.
+  final Color? borderColor;
+
+  /// 카드 테두리 두께
+  final double borderWidth;
 
   /// 카드 너비
   final double width;
@@ -96,6 +106,7 @@ class ObstacleOptionCard extends StatelessWidget {
         decoration: ShapeDecoration(
           color: backgroundColor,
           shape: RoundedRectangleBorder(
+            side: _borderSide,
             borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
@@ -118,16 +129,38 @@ class ObstacleOptionCard extends StatelessWidget {
     );
   }
 
+  BorderSide get _borderSide {
+    // 테두리 유무에 따라 내부 레이아웃이 달라지지 않도록, 미지정 시에도 동일 두께로 투명 테두리를 둡니다.
+    return BorderSide(
+      color: borderColor ?? Colors.transparent,
+      width: borderWidth,
+    );
+  }
+
   Widget _buildIcon() {
     final Widget? customIcon = iconWidget;
     final String? assetPath = svgIcon;
     final IconData? materialIcon = icon;
 
+    return SizedBox.square(
+      dimension: iconSize,
+      child: Center(
+        child: _buildIconContent(
+          customIcon: customIcon,
+          assetPath: assetPath,
+          materialIcon: materialIcon,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconContent({
+    required Widget? customIcon,
+    required String? assetPath,
+    required IconData? materialIcon,
+  }) {
     if (customIcon != null) {
-      return SizedBox.square(
-        dimension: iconSize,
-        child: Center(child: customIcon),
-      );
+      return customIcon;
     }
 
     if (assetPath != null) {

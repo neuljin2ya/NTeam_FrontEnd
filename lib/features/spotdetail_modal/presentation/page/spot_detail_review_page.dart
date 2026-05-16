@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../common/app_button.dart';
 import '../../../../common/app_top_bar.dart';
+import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
+import '../viewmodel/spot_detail_review_view_model.dart';
 
-class SpotDetailReviewPage extends StatefulWidget {
+class SpotDetailReviewPage extends ConsumerStatefulWidget {
   const SpotDetailReviewPage({
     super.key,
+    required this.spotId,
     this.selectedStatusIds = const <String>[],
   });
 
+  final int spotId;
   final List<String> selectedStatusIds;
 
   @override
-  State<SpotDetailReviewPage> createState() => _SpotDetailReviewPageState();
+  ConsumerState<SpotDetailReviewPage> createState() =>
+      _SpotDetailReviewPageState();
 }
 
-class _SpotDetailReviewPageState extends State<SpotDetailReviewPage> {
+class _SpotDetailReviewPageState extends ConsumerState<SpotDetailReviewPage> {
   final TextEditingController _reviewController = TextEditingController();
 
   @override
@@ -24,19 +31,51 @@ class _SpotDetailReviewPageState extends State<SpotDetailReviewPage> {
     super.dispose();
   }
 
-  void _submitReview() {
-    final String review = _reviewController.text.trim();
+  Future<void> _submitReview() async {
+    if (widget.spotId <= 0) {
+      _showError('잘못된 스팟 정보입니다.');
+      return;
+    }
 
-    // TODO: widget.selectedStatusIds와 review를 최근 스팟 상태 등록 API로 전달.
-    // TODO: 등록 성공 후 스팟 상세 화면으로 pop 또는 완료 화면 연결.
-    Navigator.of(context).maybePop(<String, Object>{
-      'selectedStatusIds': widget.selectedStatusIds,
-      'review': review,
-    });
+    if (widget.selectedStatusIds.isEmpty) {
+      _showError('선택한 스팟 상태가 없습니다.');
+      return;
+    }
+
+    final bool isSubmitting = ref.read(spotDetailReviewViewModelProvider);
+    if (isSubmitting) {
+      return;
+    }
+
+    final String? errorMessage = await ref
+        .read(spotDetailReviewViewModelProvider.notifier)
+        .submit(
+          spotId: widget.spotId,
+          statuses: widget.selectedStatusIds,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (errorMessage != null) {
+      _showError(errorMessage);
+      return;
+    }
+
+    Navigator.of(context).pop(true);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isSubmitting = ref.watch(spotDetailReviewViewModelProvider);
+
     return Scaffold(
       backgroundColor: FigmaColors.black,
       body: SafeArea(
@@ -65,7 +104,10 @@ class _SpotDetailReviewPageState extends State<SpotDetailReviewPage> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: _CompleteButton(onPressed: _submitReview),
+              child: AppButton(
+                text: '입력 완료',
+                onPressed: isSubmitting ? null : _submitReview,
+              ),
             ),
           ],
         ),
@@ -79,7 +121,7 @@ class _ReviewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Flexible(
@@ -87,26 +129,20 @@ class _ReviewHeader extends StatelessWidget {
             '한 줄 후기를 작성해주세요',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: AppTextStyles.headlineLarge.copyWith(
               color: FigmaColors.white,
-              fontSize: 20,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w700,
               height: 1.42,
               letterSpacing: -0.4,
             ),
           ),
         ),
-        SizedBox(width: 6),
+        const SizedBox(width: 6),
         Padding(
-          padding: EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.only(bottom: 2),
           child: Text(
             '선택',
-            style: TextStyle(
+            style: AppTextStyles.labelSmall.copyWith(
               color: FigmaColors.gray100,
-              fontSize: 12,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w400,
               height: 1.42,
               letterSpacing: -0.12,
             ),
@@ -130,11 +166,8 @@ class _ReviewInput extends StatelessWidget {
       maxLines: null,
       minLines: 5,
       cursorColor: FigmaColors.white,
-      style: const TextStyle(
+      style: AppTextStyles.bodyLarge.copyWith(
         color: FigmaColors.white,
-        fontSize: 16,
-        fontFamily: 'SUIT',
-        fontWeight: FontWeight.w400,
         height: 1.42,
       ),
       decoration: InputDecoration(
@@ -142,11 +175,8 @@ class _ReviewInput extends StatelessWidget {
         filled: true,
         fillColor: FigmaColors.gray600,
         hintText: '입력해주세요.(최대 50자)',
-        hintStyle: const TextStyle(
+        hintStyle: AppTextStyles.bodyLarge.copyWith(
           color: FigmaColors.gray100,
-          fontSize: 16,
-          fontFamily: 'SUIT',
-          fontWeight: FontWeight.w400,
           height: 1.42,
         ),
         contentPadding: const EdgeInsets.all(12),
@@ -161,40 +191,6 @@ class _ReviewInput extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-}
-
-class _CompleteButton extends StatelessWidget {
-  const _CompleteButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 60,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: FigmaColors.primary100,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Text(
-          '입력 완료',
-          style: TextStyle(
-            color: FigmaColors.black,
-            fontSize: 20,
-            fontFamily: 'SUIT',
-            fontWeight: FontWeight.w700,
-            height: 1.42,
-            letterSpacing: -0.4,
-          ),
         ),
       ),
     );

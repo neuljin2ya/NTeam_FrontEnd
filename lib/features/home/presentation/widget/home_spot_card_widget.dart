@@ -1,9 +1,15 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:parkou_route/common/difficulty_tag.dart';
-import 'package:parkou_route/common/tag.dart';
-import 'package:parkou_route/config/theme/app_semantic_colors.dart';
-import 'package:parkou_route/config/theme/app_text_styles.dart';
-import 'package:parkou_route/config/theme/figma_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../common/difficulty_tag.dart';
+import '../../../../common/tag.dart';
+import '../../../../config/theme/app_semantic_colors.dart';
+import '../../../../config/theme/app_text_styles.dart';
+import '../../../../config/theme/figma_colors.dart';
+import '../../../file/data/providers/file_providers.dart';
 
 class HomeSpotCardWidget extends StatelessWidget {
   const HomeSpotCardWidget({
@@ -12,6 +18,7 @@ class HomeSpotCardWidget extends StatelessWidget {
     required this.address,
     required this.difficulty,
     required this.statusTags,
+    this.captionImgUrl,
     this.onTap,
   });
 
@@ -19,6 +26,7 @@ class HomeSpotCardWidget extends StatelessWidget {
   final String address;
   final DifficultyLevel difficulty;
   final List<String> statusTags;
+  final String? captionImgUrl;
   final VoidCallback? onTap;
 
   @override
@@ -34,7 +42,7 @@ class HomeSpotCardWidget extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              _SpotImagePlaceholder(),
+              _SpotCardImage(imageUrl: captionImgUrl),
               const SizedBox(width: 16),
               Expanded(
                 child: _SpotInfoColumn(
@@ -57,17 +65,120 @@ class HomeSpotCardWidget extends StatelessWidget {
   }
 }
 
-class _SpotImagePlaceholder extends StatelessWidget {
+class _SpotCardImage extends ConsumerStatefulWidget {
+  const _SpotCardImage({this.imageUrl});
+
+  final String? imageUrl;
+
+  @override
+  ConsumerState<_SpotCardImage> createState() => _SpotCardImageState();
+}
+
+class _SpotCardImageState extends ConsumerState<_SpotCardImage> {
+  Uint8List? _imageBytes;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_resolveImageUrl());
+  }
+
+  @override
+  void didUpdateWidget(covariant _SpotCardImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      unawaited(_resolveImageUrl());
+    }
+  }
+
+  Future<void> _resolveImageUrl() async {
+    final String trimmed = widget.imageUrl?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _imageBytes = null;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _imageBytes = null;
+    });
+
+    try {
+      final Uint8List bytes =
+          await ref.read(getFileUseCaseProvider).call(trimmed);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _imageBytes = bytes.isEmpty ? null : bytes;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _imageBytes = null;
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: FigmaColors.gray400,
-        borderRadius: BorderRadius.circular(8),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 72,
+        height: 72,
+        child: ColoredBox(
+          color: FigmaColors.gray400,
+          child: _buildContent(),
+        ),
       ),
     );
+  }
+
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: FigmaColors.primary200,
+          ),
+        ),
+      );
+    }
+
+    final Uint8List? bytes = _imageBytes;
+    if (bytes != null && bytes.isNotEmpty) {
+      return Image.memory(
+        bytes,
+        width: 72,
+        height: 72,
+        fit: BoxFit.cover,
+        errorBuilder: (
+          BuildContext context,
+          Object error,
+          StackTrace? stackTrace,
+        ) {
+          return const SizedBox.shrink();
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }
 

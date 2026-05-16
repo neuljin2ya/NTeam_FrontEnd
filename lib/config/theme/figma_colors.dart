@@ -13,7 +13,10 @@ abstract final class FigmaColors {
   // ---------------------------------------------------------------------------
 
   /// Figma: `Primary/Main`
-  static const Color primaryMain = Color(0xFF19191C);
+  static const Color primaryMain = Color(0xFF61FFD7);
+
+  /// Figma: `Primary/700`
+  static const Color primary700 = Color(0xFF021910);
 
   /// Figma: `Primary/600`
   static const Color primary600 = Color(0xFF002416);
