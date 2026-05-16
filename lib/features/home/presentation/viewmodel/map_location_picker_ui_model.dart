@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../domain/maps/entity/map_location.dart';
+import '../../../../domain/maps/entity/map_location.dart';
 
 part 'map_location_picker_ui_model.freezed.dart';
 
