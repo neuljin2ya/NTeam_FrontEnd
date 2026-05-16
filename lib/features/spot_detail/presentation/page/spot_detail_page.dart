@@ -10,7 +10,6 @@ import '../../../../common/status_action_button.dart';
 import '../../../../common/tag.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../router/app_router.dart';
-import '../../../spotdetail_modal/presentation/page/spot_detail_modal.dart';
 
 class SpotDetailPage extends StatelessWidget {
   const SpotDetailPage({super.key});
@@ -313,27 +312,7 @@ class _RecentStatusSection extends StatelessWidget {
   }
 
   void _showSpotDetailModal(BuildContext context) {
-    final BuildContext spotDetailContext = context;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext bottomSheetContext) {
-        return SpotDetailModal(
-          onBackPressed: () {
-            Navigator.of(bottomSheetContext).pop();
-          },
-          onSubmit: (List<String> selectedStatusIds) {
-            Navigator.of(bottomSheetContext).pop();
-            spotDetailContext.push(
-              SGRoute.spotDetailReview.route,
-              extra: selectedStatusIds,
-            );
-          },
-        );
-      },
-    );
+    context.push(SGRoute.spotDetailStatus.route);
   }
 }
 
