@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -67,8 +67,8 @@ class SpotDetailVideoSection extends StatelessWidget {
           final SpotDetailVideoUiModel video = videos[index];
           return SpotDetailVideoPreviewCard(
             key: ValueKey<int>(video.videoId),
-            videoUrl: video.videoUrl,
             title: video.title,
+            videoUrl: video.videoUrl,
             onTap: onVideoTap == null ? null : () => onVideoTap!(index),
           );
         },
@@ -80,13 +80,13 @@ class SpotDetailVideoSection extends StatelessWidget {
 class SpotDetailVideoPreviewCard extends StatefulWidget {
   const SpotDetailVideoPreviewCard({
     super.key,
-    required this.videoUrl,
     required this.title,
+    required this.videoUrl,
     this.onTap,
   });
 
-  final String videoUrl;
   final String title;
+  final String videoUrl;
   final VoidCallback? onTap;
 
   @override
@@ -94,9 +94,10 @@ class SpotDetailVideoPreviewCard extends StatefulWidget {
       _SpotDetailVideoPreviewCardState();
 }
 
-class _SpotDetailVideoPreviewCardState extends State<SpotDetailVideoPreviewCard> {
-  String? _thumbnailPath;
-  bool _isThumbnailLoading = true;
+class _SpotDetailVideoPreviewCardState
+    extends State<SpotDetailVideoPreviewCard> {
+  Uint8List? _thumbnail;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -108,46 +109,37 @@ class _SpotDetailVideoPreviewCardState extends State<SpotDetailVideoPreviewCard>
   void didUpdateWidget(covariant SpotDetailVideoPreviewCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoUrl != widget.videoUrl) {
+      setState(() {
+        _thumbnail = null;
+        _isLoading = true;
+      });
       _loadThumbnail();
     }
   }
 
   Future<void> _loadThumbnail() async {
-    setState(() {
-      _isThumbnailLoading = true;
-      _thumbnailPath = null;
-    });
-
     try {
-      final String? thumbnailPath = await VideoThumbnail.thumbnailFile(
+      final Uint8List? bytes = await VideoThumbnail.thumbnailData(
         video: widget.videoUrl,
         imageFormat: ImageFormat.JPEG,
+        maxHeight: 240,
         quality: 75,
       );
-
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _thumbnail = bytes;
+          _isLoading = false;
+        });
       }
-
-      setState(() {
-        _thumbnailPath = thumbnailPath;
-        _isThumbnailLoading = false;
-      });
     } catch (_) {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
-
-      setState(() {
-        _isThumbnailLoading = false;
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String? thumbnailPath = _thumbnailPath;
-
     return SizedBox(
       width: 120,
       child: Column(
@@ -163,14 +155,16 @@ class _SpotDetailVideoPreviewCardState extends State<SpotDetailVideoPreviewCard>
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
-                    if (thumbnailPath != null)
-                      Image.file(
-                        File(thumbnailPath),
+                    if (_thumbnail != null)
+                      Image.memory(
+                        _thumbnail!,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const ColoredBox(color: FigmaColors.gray500),
                       )
                     else
                       const ColoredBox(color: FigmaColors.gray500),
-                    if (_isThumbnailLoading)
+                    if (_isLoading)
                       const Center(
                         child: SizedBox(
                           width: 24,
@@ -180,14 +174,15 @@ class _SpotDetailVideoPreviewCardState extends State<SpotDetailVideoPreviewCard>
                             color: FigmaColors.primary200,
                           ),
                         ),
+                      )
+                    else
+                      const Center(
+                        child: Icon(
+                          Icons.play_circle_outline,
+                          color: FigmaColors.primary100,
+                          size: 40,
+                        ),
                       ),
-                    const Center(
-                      child: Icon(
-                        Icons.play_circle_outline,
-                        color: FigmaColors.primary100,
-                        size: 40,
-                      ),
-                    ),
                   ],
                 ),
               ),

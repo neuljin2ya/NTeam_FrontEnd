@@ -28,6 +28,8 @@ class HomeBottomSheetWidget extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
 
+  static const EdgeInsets _contentPadding = EdgeInsets.fromLTRB(16, 12, 16, 16);
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -39,72 +41,98 @@ class HomeBottomSheetWidget extends StatelessWidget {
             color: AppSemanticColors.backgroundPage.withValues(alpha: 0.92),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Column(
-                children: <Widget>[
-                  _SheetHandle(onTap: onHandleTap),
-                  Expanded(child: _buildBody(context)),
-                ],
-              ),
+          child: CustomScrollView(
+            controller: scrollController,
+            primary: false,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: ClampingScrollPhysics(),
             ),
+            slivers: <Widget>[
+              SliverPadding(
+                padding: _contentPadding.copyWith(bottom: 0),
+                sliver: SliverToBoxAdapter(
+                  child: _SheetHandle(onTap: onHandleTap),
+                ),
+              ),
+              ..._buildContentSlivers(context),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  List<Widget> _buildContentSlivers(BuildContext context) {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: FigmaColors.primary200),
-      );
+      return <Widget>[
+        _centeredStatusSliver(
+          const CircularProgressIndicator(color: FigmaColors.primary200),
+        ),
+      ];
     }
 
     if (errorMessage != null) {
-      return Center(
-        child: Text(
-          errorMessage!,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppSemanticColors.textSecondary,
+      return <Widget>[
+        _centeredStatusSliver(
+          Text(
+            errorMessage!,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppSemanticColors.textSecondary,
+            ),
           ),
         ),
-      );
+      ];
     }
 
     if (spots.isEmpty) {
-      return Center(
-        child: Text(
-          '주변에 등록된 스팟이 없습니다.',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppSemanticColors.textSecondary,
+      return <Widget>[
+        _centeredStatusSliver(
+          Text(
+            '주변에 등록된 스팟이 없습니다.',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppSemanticColors.textSecondary,
+            ),
           ),
         ),
-      );
+      ];
     }
 
-    return ListView.separated(
-      controller: scrollController,
-      physics: const ClampingScrollPhysics(),
-      itemCount: spots.length,
-      separatorBuilder: (BuildContext context, int index) =>
-          const SizedBox(height: 12),
-      itemBuilder: (BuildContext context, int index) {
-        final Spot spot = spots[index];
-        return HomeSpotCardWidget(
-          title: spot.name,
-          address: spot.fullAddress,
-          captionImgUrl: spot.captionImgUrl,
-          difficulty: SpotDifficultyMapper.toLevel(spot.difficulty),
-          statusTags: SpotKeyLabelMapper.mapStatusLabels(spot.statusList),
-          onTap: () {
-            context.push('${SGRoute.spotDetail.route}/${spot.spotId}');
+    return <Widget>[
+      SliverPadding(
+        padding: _contentPadding.copyWith(top: 0),
+        sliver: SliverList.separated(
+          itemCount: spots.length,
+          separatorBuilder: (BuildContext context, int index) =>
+              const SizedBox(height: 12),
+          itemBuilder: (BuildContext context, int index) {
+            final Spot spot = spots[index];
+            return HomeSpotCardWidget(
+              title: spot.name,
+              address: spot.fullAddress,
+              captionImgUrl: spot.captionImgUrl,
+              difficulty: SpotDifficultyMapper.toLevel(spot.difficulty),
+              statusTags: SpotKeyLabelMapper.mapStatusLabels(
+                spot.latestStatusList?.statuses ?? const <String>[],
+              ),
+              onTap: () {
+                context.push('${SGRoute.spotDetail.route}/${spot.spotId}');
+              },
+            );
           },
-        );
-      },
+        ),
+      ),
+    ];
+  }
+
+  /// 시트 가시 영역 기준 세로 중앙 (네비·과도한 하단 패딩 없음).
+  static Widget _centeredStatusSliver(Widget child) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Align(
+        alignment: const Alignment(0, -0.25),
+        child: child,
+      ),
     );
   }
 }
@@ -120,8 +148,8 @@ class _SheetHandle extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 32,
-        height: 12,
+        width: double.infinity,
+        height: 24,
         child: Center(
           child: Container(
             width: 32,

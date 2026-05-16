@@ -14,8 +14,10 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$CreateSpotResponseModel {
+  bool get isSuccess;
   String get code;
   String get message;
+  @JsonKey(name: 'result')
   CreateSpotDataModel? get data;
 
   /// Create a copy of CreateSpotResponseModel
@@ -34,6 +36,8 @@ mixin _$CreateSpotResponseModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is CreateSpotResponseModel &&
+            (identical(other.isSuccess, isSuccess) ||
+                other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.data, data) || other.data == data));
@@ -41,11 +45,11 @@ mixin _$CreateSpotResponseModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, code, message, data);
+  int get hashCode => Object.hash(runtimeType, isSuccess, code, message, data);
 
   @override
   String toString() {
-    return 'CreateSpotResponseModel(code: $code, message: $message, data: $data)';
+    return 'CreateSpotResponseModel(isSuccess: $isSuccess, code: $code, message: $message, data: $data)';
   }
 }
 
@@ -55,7 +59,11 @@ abstract mixin class $CreateSpotResponseModelCopyWith<$Res> {
           $Res Function(CreateSpotResponseModel) _then) =
       _$CreateSpotResponseModelCopyWithImpl;
   @useResult
-  $Res call({String code, String message, CreateSpotDataModel? data});
+  $Res call(
+      {bool isSuccess,
+      String code,
+      String message,
+      @JsonKey(name: 'result') CreateSpotDataModel? data});
 
   $CreateSpotDataModelCopyWith<$Res>? get data;
 }
@@ -73,11 +81,16 @@ class _$CreateSpotResponseModelCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? isSuccess = null,
     Object? code = null,
     Object? message = null,
     Object? data = freezed,
   }) {
     return _then(_self.copyWith(
+      isSuccess: null == isSuccess
+          ? _self.isSuccess
+          : isSuccess // ignore: cast_nullable_to_non_nullable
+              as bool,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -201,14 +214,15 @@ extension CreateSpotResponseModelPatterns on CreateSpotResponseModel {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String code, String message, CreateSpotDataModel? data)?
+    TResult Function(bool isSuccess, String code, String message,
+            @JsonKey(name: 'result') CreateSpotDataModel? data)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _CreateSpotResponseModel() when $default != null:
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         return orElse();
     }
@@ -229,13 +243,14 @@ extension CreateSpotResponseModelPatterns on CreateSpotResponseModel {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String code, String message, CreateSpotDataModel? data)
+    TResult Function(bool isSuccess, String code, String message,
+            @JsonKey(name: 'result') CreateSpotDataModel? data)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CreateSpotResponseModel():
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -255,13 +270,14 @@ extension CreateSpotResponseModelPatterns on CreateSpotResponseModel {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String code, String message, CreateSpotDataModel? data)?
+    TResult? Function(bool isSuccess, String code, String message,
+            @JsonKey(name: 'result') CreateSpotDataModel? data)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CreateSpotResponseModel() when $default != null:
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         return null;
     }
@@ -270,18 +286,23 @@ extension CreateSpotResponseModelPatterns on CreateSpotResponseModel {
 
 /// @nodoc
 @JsonSerializable()
-class _CreateSpotResponseModel extends CreateSpotResponseModel {
+class _CreateSpotResponseModel implements CreateSpotResponseModel {
   const _CreateSpotResponseModel(
-      {required this.code, required this.message, this.data})
-      : super._();
+      {required this.isSuccess,
+      required this.code,
+      required this.message,
+      @JsonKey(name: 'result') this.data});
   factory _CreateSpotResponseModel.fromJson(Map<String, dynamic> json) =>
       _$CreateSpotResponseModelFromJson(json);
 
+  @override
+  final bool isSuccess;
   @override
   final String code;
   @override
   final String message;
   @override
+  @JsonKey(name: 'result')
   final CreateSpotDataModel? data;
 
   /// Create a copy of CreateSpotResponseModel
@@ -305,6 +326,8 @@ class _CreateSpotResponseModel extends CreateSpotResponseModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _CreateSpotResponseModel &&
+            (identical(other.isSuccess, isSuccess) ||
+                other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.data, data) || other.data == data));
@@ -312,11 +335,11 @@ class _CreateSpotResponseModel extends CreateSpotResponseModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, code, message, data);
+  int get hashCode => Object.hash(runtimeType, isSuccess, code, message, data);
 
   @override
   String toString() {
-    return 'CreateSpotResponseModel(code: $code, message: $message, data: $data)';
+    return 'CreateSpotResponseModel(isSuccess: $isSuccess, code: $code, message: $message, data: $data)';
   }
 }
 
@@ -328,7 +351,11 @@ abstract mixin class _$CreateSpotResponseModelCopyWith<$Res>
       __$CreateSpotResponseModelCopyWithImpl;
   @override
   @useResult
-  $Res call({String code, String message, CreateSpotDataModel? data});
+  $Res call(
+      {bool isSuccess,
+      String code,
+      String message,
+      @JsonKey(name: 'result') CreateSpotDataModel? data});
 
   @override
   $CreateSpotDataModelCopyWith<$Res>? get data;
@@ -347,11 +374,16 @@ class __$CreateSpotResponseModelCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? isSuccess = null,
     Object? code = null,
     Object? message = null,
     Object? data = freezed,
   }) {
     return _then(_CreateSpotResponseModel(
+      isSuccess: null == isSuccess
+          ? _self.isSuccess
+          : isSuccess // ignore: cast_nullable_to_non_nullable
+              as bool,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable

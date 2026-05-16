@@ -24,7 +24,7 @@ mixin _$Spot {
   String get difficulty;
   String get description;
   List<String> get features;
-  List<String> get statusList;
+  List<SpotStatusList> get statusList;
   DateTime get createdAt;
 
   /// Create a copy of Spot
@@ -100,7 +100,7 @@ abstract mixin class $SpotCopyWith<$Res> {
       String difficulty,
       String description,
       List<String> features,
-      List<String> statusList,
+      List<SpotStatusList> statusList,
       DateTime createdAt});
 }
 
@@ -173,7 +173,7 @@ class _$SpotCopyWithImpl<$Res> implements $SpotCopyWith<$Res> {
       statusList: null == statusList
           ? _self.statusList
           : statusList // ignore: cast_nullable_to_non_nullable
-              as List<String>,
+              as List<SpotStatusList>,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -286,7 +286,7 @@ extension SpotPatterns on Spot {
             String difficulty,
             String description,
             List<String> features,
-            List<String> statusList,
+            List<SpotStatusList> statusList,
             DateTime createdAt)?
         $default, {
     required TResult orElse(),
@@ -338,7 +338,7 @@ extension SpotPatterns on Spot {
             String difficulty,
             String description,
             List<String> features,
-            List<String> statusList,
+            List<SpotStatusList> statusList,
             DateTime createdAt)
         $default,
   ) {
@@ -388,7 +388,7 @@ extension SpotPatterns on Spot {
             String difficulty,
             String description,
             List<String> features,
-            List<String> statusList,
+            List<SpotStatusList> statusList,
             DateTime createdAt)?
         $default,
   ) {
@@ -428,7 +428,7 @@ class _Spot extends Spot {
       required this.difficulty,
       required this.description,
       final List<String> features = const <String>[],
-      final List<String> statusList = const <String>[],
+      final List<SpotStatusList> statusList = const <SpotStatusList>[],
       required this.createdAt})
       : _features = features,
         _statusList = statusList,
@@ -461,10 +461,10 @@ class _Spot extends Spot {
     return EqualUnmodifiableListView(_features);
   }
 
-  final List<String> _statusList;
+  final List<SpotStatusList> _statusList;
   @override
   @JsonKey()
-  List<String> get statusList {
+  List<SpotStatusList> get statusList {
     if (_statusList is EqualUnmodifiableListView) return _statusList;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_statusList);
@@ -548,7 +548,7 @@ abstract mixin class _$SpotCopyWith<$Res> implements $SpotCopyWith<$Res> {
       String difficulty,
       String description,
       List<String> features,
-      List<String> statusList,
+      List<SpotStatusList> statusList,
       DateTime createdAt});
 }
 
@@ -621,7 +621,7 @@ class __$SpotCopyWithImpl<$Res> implements _$SpotCopyWith<$Res> {
       statusList: null == statusList
           ? _self._statusList
           : statusList // ignore: cast_nullable_to_non_nullable
-              as List<String>,
+              as List<SpotStatusList>,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable

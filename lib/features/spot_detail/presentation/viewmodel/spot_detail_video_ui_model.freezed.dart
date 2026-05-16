@@ -17,7 +17,7 @@ mixin _$SpotDetailVideoUiModel {
   int get videoId;
   String get title;
 
-  /// `api/file/download` 바이너리를 임시 파일로 저장한 로컬 경로.
+  /// `api/file/download`로 변환된 영상 재생 URL.
   String get videoUrl;
 
   /// Create a copy of SpotDetailVideoUiModel
@@ -259,7 +259,7 @@ class _SpotDetailVideoUiModel implements SpotDetailVideoUiModel {
   @override
   final String title;
 
-  /// `api/file/download` 바이너리를 임시 파일로 저장한 로컬 경로.
+  /// `api/file/download`로 변환된 영상 재생 URL.
   @override
   final String videoUrl;
 

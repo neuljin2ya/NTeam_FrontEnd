@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../dev/dev_page.dart';
+import '../features/download_spot/presentation/page/download_spot_page.dart';
 import '../features/home/presentation/page/home_page.dart';
 import '../features/load/presentation/page/load_page.dart';
 import '../features/login/presentation/page/login_page.dart';
 import '../features/new_spot/presentation/page/new_spot_address_page.dart';
 import '../features/new_spot/presentation/page/new_spot_page.dart';
+import 'main_shell_page.dart';
 import '../features/spot_detail/presentation/page/spot_detail_page.dart';
 import '../common/spot_video_detail_args.dart';
 import '../features/spot_video/presentation/page/spot_video_detail_page.dart';
@@ -23,6 +25,7 @@ enum SGRoute {
   load,
   login,
   home,
+  downloadSpot,
   dev,
   newSpot,
   newSpotAddress,
@@ -40,7 +43,7 @@ enum SGRoute {
 GoRouter goRouter(Ref ref) => GoRouter(
   initialLocation: SGRoute.load.route,
       overridePlatformDefaultLocation: true,
-  routes: <GoRoute>[
+  routes: <RouteBase>[
     GoRoute(
       path: SGRoute.load.route,
       builder: (BuildContext context, GoRouterState state) => const LoadPage(),
@@ -49,9 +52,35 @@ GoRouter goRouter(Ref ref) => GoRouter(
       path: SGRoute.login.route,
       builder: (BuildContext context, GoRouterState state) => const LoginPage(),
     ),
-    GoRoute(
-      path: SGRoute.home.route,
-      builder: (BuildContext context, GoRouterState state) => const HomePage(),
+    StatefulShellRoute.indexedStack(
+      builder:
+          (
+            BuildContext context,
+            GoRouterState state,
+            StatefulNavigationShell navigationShell,
+          ) {
+            return MainShellPage(navigationShell: navigationShell);
+          },
+      branches: <StatefulShellBranch>[
+        StatefulShellBranch(
+          routes: <RouteBase>[
+            GoRoute(
+              path: SGRoute.home.route,
+              builder: (BuildContext context, GoRouterState state) =>
+                  const HomePage(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: <RouteBase>[
+            GoRoute(
+              path: SGRoute.downloadSpot.route,
+              builder: (BuildContext context, GoRouterState state) =>
+                  const DownloadSpotPage(),
+            ),
+          ],
+        ),
+      ],
     ),
     GoRoute(
       path: SGRoute.newSpot.route,

@@ -7,11 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../common/app_input_field.dart';
+import '../../../../common/app_navigation_bar.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../domain/maps/entity/map_location.dart';
 import '../../../../router/app_router.dart';
+import '../../../../router/route_navigation.dart';
+import '../../../../router/router_location_provider.dart';
 import '../util/home_map_location_service.dart';
 import '../viewmodel/home_ui_model.dart';
 import '../viewmodel/home_view_model.dart';
@@ -25,8 +27,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  static const double _minSheetSizeRatio = 0.4;
-  static const double _maxSheetSize = 0.85;
+  static const double _minSheetSizeRatio = 0.3;
+  static const double _maxSheetSize = 0.5;
   static const Duration _sheetAnimationDuration = Duration(milliseconds: 260);
 
   static const String _searchIconAsset = 'assets/icons/icon_search.svg';
@@ -47,9 +49,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _sheetController.addListener(_onSheetSizeChanged);
+    _locationService.onSpotMarkerTap = _onSpotMarkerTapped;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_homeViewModel.loadAllSpots());
     });
+  }
+
+  void _onSpotMarkerTapped(int spotId) {
+    if (!mounted) {
+      return;
+    }
+    context.push('${SGRoute.spotDetail.route}/$spotId');
+  }
+
+  void _syncSpotMarkersFromState(HomeUiModel homeState) {
+    unawaited(_locationService.syncSpotMarkers(homeState.spots));
   }
 
   @override
@@ -94,10 +108,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _onSheetSizeChanged() {
-    if (!_sheetController.isAttached) {
+    if (!_sheetController.isAttached || !mounted) {
       return;
     }
     _currentSheetSize = _sheetController.size;
+    _locationService.setBottomOverlayFraction(_currentSheetSize);
   }
 
   Future<void> _toggleSheetByHandle() async {
@@ -166,14 +181,39 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(routerLocationProvider, (String? previous, String next) {
+      if (didNavigateToRoute(
+        previous: previous,
+        next: next,
+        route: SGRoute.home.route,
+      )) {
+        unawaited(_homeViewModel.loadAllSpots());
+      }
+    });
+
     final HomeUiModel homeState = ref.watch(homeViewModelProvider);
+
+    ref.listen<HomeUiModel>(homeViewModelProvider, (
+      HomeUiModel? previous,
+      HomeUiModel next,
+    ) {
+      if (previous?.spots != next.spots) {
+        _syncSpotMarkersFromState(next);
+      }
+    });
     final bool isSpotBusy =
         homeState.isLoadingSpots || homeState.isSearchingLocation;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        _minSheetSize = _minSheetSizeRatio.clamp(0.2, _maxSheetSize);
-        _maxSheetSizeByViewport = _maxSheetSize;
+        final double navBottomInset =
+            AppNavigationBar.bottomInset(context);
+        final double navFraction =
+            navBottomInset / constraints.maxHeight.clamp(1, double.infinity);
+
+        _minSheetSize = (_minSheetSizeRatio + navFraction).clamp(0.2, _maxSheetSize);
+        _maxSheetSizeByViewport =
+            (_maxSheetSize + navFraction).clamp(_minSheetSize, 1);
         if (_currentSheetSize == 0) {
           _currentSheetSize = _minSheetSize;
         }
@@ -202,7 +242,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                     _BasicNaverMapPreview(
                       onMapReady: (NaverMapController controller) {
                         _locationService.setBottomOverlayFraction(_minSheetSize);
-                        unawaited(_locationService.attach(controller));
+                        unawaited(() async {
+                          await _locationService.attach(controller);
+                          if (!mounted) {
+                            return;
+                          }
+                          _syncSpotMarkersFromState(
+                            ref.read(homeViewModelProvider),
+                          );
+                        }());
                       },
                     ),
                     Positioned(
@@ -270,12 +318,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                               : _minSheetSize;
                           return Positioned(
                             right: 16,
-                            bottom: (constraints.maxHeight * sheetSize) + 12,
+                            bottom:
+                                (constraints.maxHeight * sheetSize) + 12,
                             child: _CurrentLocationButton(
                               onTap: homeState.isSearchingLocation
                                   ? null
-                                  // : _moveToCurrentLocation,
-                                  : () => context.push(SGRoute.newSpot.route),
+                                  : _moveToCurrentLocation,
                             ),
                           );
                         },

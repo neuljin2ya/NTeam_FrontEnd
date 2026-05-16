@@ -14,6 +14,7 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$AddSpotStatusRequestModel {
+  String get description;
   List<String> get statuses;
 
   /// Create a copy of AddSpotStatusRequestModel
@@ -32,17 +33,19 @@ mixin _$AddSpotStatusRequestModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is AddSpotStatusRequestModel &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             const DeepCollectionEquality().equals(other.statuses, statuses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(statuses));
+  int get hashCode => Object.hash(
+      runtimeType, description, const DeepCollectionEquality().hash(statuses));
 
   @override
   String toString() {
-    return 'AddSpotStatusRequestModel(statuses: $statuses)';
+    return 'AddSpotStatusRequestModel(description: $description, statuses: $statuses)';
   }
 }
 
@@ -52,7 +55,7 @@ abstract mixin class $AddSpotStatusRequestModelCopyWith<$Res> {
           $Res Function(AddSpotStatusRequestModel) _then) =
       _$AddSpotStatusRequestModelCopyWithImpl;
   @useResult
-  $Res call({List<String> statuses});
+  $Res call({String description, List<String> statuses});
 }
 
 /// @nodoc
@@ -68,9 +71,14 @@ class _$AddSpotStatusRequestModelCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? description = null,
     Object? statuses = null,
   }) {
     return _then(_self.copyWith(
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
       statuses: null == statuses
           ? _self.statuses
           : statuses // ignore: cast_nullable_to_non_nullable
@@ -172,13 +180,13 @@ extension AddSpotStatusRequestModelPatterns on AddSpotStatusRequestModel {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(List<String> statuses)? $default, {
+    TResult Function(String description, List<String> statuses)? $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _AddSpotStatusRequestModel() when $default != null:
-        return $default(_that.statuses);
+        return $default(_that.description, _that.statuses);
       case _:
         return orElse();
     }
@@ -199,12 +207,12 @@ extension AddSpotStatusRequestModelPatterns on AddSpotStatusRequestModel {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(List<String> statuses) $default,
+    TResult Function(String description, List<String> statuses) $default,
   ) {
     final _that = this;
     switch (_that) {
       case _AddSpotStatusRequestModel():
-        return $default(_that.statuses);
+        return $default(_that.description, _that.statuses);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -224,12 +232,12 @@ extension AddSpotStatusRequestModelPatterns on AddSpotStatusRequestModel {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(List<String> statuses)? $default,
+    TResult? Function(String description, List<String> statuses)? $default,
   ) {
     final _that = this;
     switch (_that) {
       case _AddSpotStatusRequestModel() when $default != null:
-        return $default(_that.statuses);
+        return $default(_that.description, _that.statuses);
       case _:
         return null;
     }
@@ -239,11 +247,14 @@ extension AddSpotStatusRequestModelPatterns on AddSpotStatusRequestModel {
 /// @nodoc
 @JsonSerializable()
 class _AddSpotStatusRequestModel implements AddSpotStatusRequestModel {
-  const _AddSpotStatusRequestModel({required final List<String> statuses})
+  const _AddSpotStatusRequestModel(
+      {required this.description, required final List<String> statuses})
       : _statuses = statuses;
   factory _AddSpotStatusRequestModel.fromJson(Map<String, dynamic> json) =>
       _$AddSpotStatusRequestModelFromJson(json);
 
+  @override
+  final String description;
   final List<String> _statuses;
   @override
   List<String> get statuses {
@@ -274,17 +285,19 @@ class _AddSpotStatusRequestModel implements AddSpotStatusRequestModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _AddSpotStatusRequestModel &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             const DeepCollectionEquality().equals(other._statuses, _statuses));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_statuses));
+  int get hashCode => Object.hash(
+      runtimeType, description, const DeepCollectionEquality().hash(_statuses));
 
   @override
   String toString() {
-    return 'AddSpotStatusRequestModel(statuses: $statuses)';
+    return 'AddSpotStatusRequestModel(description: $description, statuses: $statuses)';
   }
 }
 
@@ -296,7 +309,7 @@ abstract mixin class _$AddSpotStatusRequestModelCopyWith<$Res>
       __$AddSpotStatusRequestModelCopyWithImpl;
   @override
   @useResult
-  $Res call({List<String> statuses});
+  $Res call({String description, List<String> statuses});
 }
 
 /// @nodoc
@@ -312,9 +325,14 @@ class __$AddSpotStatusRequestModelCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? description = null,
     Object? statuses = null,
   }) {
     return _then(_AddSpotStatusRequestModel(
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
       statuses: null == statuses
           ? _self._statuses
           : statuses // ignore: cast_nullable_to_non_nullable

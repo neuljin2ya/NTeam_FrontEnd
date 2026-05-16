@@ -9,18 +9,33 @@ class UploadVideoPreview extends StatelessWidget {
     super.key,
     this.thumbnailPath,
     this.isCompressing = false,
+    this.isUploading = false,
+    this.isRegistering = false,
     this.onChangeVideoPressed,
   });
 
   final String? thumbnailPath;
   final bool isCompressing;
+  final bool isUploading;
+  final bool isRegistering;
   final VoidCallback? onChangeVideoPressed;
+
+  bool get _isBusy => isCompressing || isUploading || isRegistering;
+
+  String get _busyMessage {
+    if (isCompressing) {
+      return '영상을 압축하는 중입니다.';
+    }
+    if (isUploading) {
+      return '영상을 업로드하는 중입니다.';
+    }
+    return '영상을 등록하는 중입니다.';
+  }
 
   @override
   Widget build(BuildContext context) {
     final String? previewPath = thumbnailPath;
-    final VoidCallback? onPressed =
-        isCompressing ? null : onChangeVideoPressed;
+    final VoidCallback? onPressed = _isBusy ? null : onChangeVideoPressed;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -45,7 +60,7 @@ class UploadVideoPreview extends StatelessWidget {
                           fit: BoxFit.cover,
                         ),
                 ),
-                child: isCompressing
+                child: _isBusy
                     ? null
                     : const Icon(
                         Icons.play_circle_outline,
@@ -53,7 +68,7 @@ class UploadVideoPreview extends StatelessWidget {
                         size: 64,
                       ),
               ),
-              if (isCompressing)
+              if (_isBusy)
                 Container(
                   width: 166,
                   height: 230,
@@ -61,17 +76,17 @@ class UploadVideoPreview extends StatelessWidget {
                     color: FigmaColors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      CircularProgressIndicator(
+                      const CircularProgressIndicator(
                         color: FigmaColors.primary100,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
-                        '영상을 압축하는 중입니다.',
+                        _busyMessage,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: FigmaColors.white,
                           fontSize: 14,
                           fontFamily: 'SUIT',
@@ -97,7 +112,7 @@ class UploadVideoPreview extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              isCompressing
+              _isBusy
                   ? '처리 중…'
                   : previewPath == null
                       ? '영상 추가하기'

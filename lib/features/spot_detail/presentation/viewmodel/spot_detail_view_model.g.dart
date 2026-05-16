@@ -42,7 +42,7 @@ final class SpotDetailViewModelProvider
 }
 
 String _$spotDetailViewModelHash() =>
-    r'323ef50921b2f263b9fd33522f9403fadbca0988';
+    r'864fb7e16843900b51f688f41e503340e0b15289';
 
 abstract class _$SpotDetailViewModel extends $Notifier<SpotDetailUiModel> {
   SpotDetailUiModel build();

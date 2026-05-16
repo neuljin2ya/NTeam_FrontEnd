@@ -21,6 +21,8 @@ mixin _$NewSpotUiModel {
   Set<String> get selectedEnvironmentTags;
   bool get isObstacleSectionExpanded;
   String? get captionImagePath;
+  String? get captionImgUrl;
+  bool get isUploadingCaption;
   NewSpotPhotoSource? get photoSource;
   bool get isSubmitting;
   String? get errorMessage;
@@ -53,6 +55,10 @@ mixin _$NewSpotUiModel {
                 other.isObstacleSectionExpanded == isObstacleSectionExpanded) &&
             (identical(other.captionImagePath, captionImagePath) ||
                 other.captionImagePath == captionImagePath) &&
+            (identical(other.captionImgUrl, captionImgUrl) ||
+                other.captionImgUrl == captionImgUrl) &&
+            (identical(other.isUploadingCaption, isUploadingCaption) ||
+                other.isUploadingCaption == isUploadingCaption) &&
             (identical(other.photoSource, photoSource) ||
                 other.photoSource == photoSource) &&
             (identical(other.isSubmitting, isSubmitting) ||
@@ -71,13 +77,15 @@ mixin _$NewSpotUiModel {
       const DeepCollectionEquality().hash(selectedEnvironmentTags),
       isObstacleSectionExpanded,
       captionImagePath,
+      captionImgUrl,
+      isUploadingCaption,
       photoSource,
       isSubmitting,
       errorMessage);
 
   @override
   String toString() {
-    return 'NewSpotUiModel(spotName: $spotName, selectedLocation: $selectedLocation, difficulty: $difficulty, selectedObstacleIds: $selectedObstacleIds, selectedEnvironmentTags: $selectedEnvironmentTags, isObstacleSectionExpanded: $isObstacleSectionExpanded, captionImagePath: $captionImagePath, photoSource: $photoSource, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
+    return 'NewSpotUiModel(spotName: $spotName, selectedLocation: $selectedLocation, difficulty: $difficulty, selectedObstacleIds: $selectedObstacleIds, selectedEnvironmentTags: $selectedEnvironmentTags, isObstacleSectionExpanded: $isObstacleSectionExpanded, captionImagePath: $captionImagePath, captionImgUrl: $captionImgUrl, isUploadingCaption: $isUploadingCaption, photoSource: $photoSource, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
   }
 }
 
@@ -95,6 +103,8 @@ abstract mixin class $NewSpotUiModelCopyWith<$Res> {
       Set<String> selectedEnvironmentTags,
       bool isObstacleSectionExpanded,
       String? captionImagePath,
+      String? captionImgUrl,
+      bool isUploadingCaption,
       NewSpotPhotoSource? photoSource,
       bool isSubmitting,
       String? errorMessage});
@@ -122,6 +132,8 @@ class _$NewSpotUiModelCopyWithImpl<$Res>
     Object? selectedEnvironmentTags = null,
     Object? isObstacleSectionExpanded = null,
     Object? captionImagePath = freezed,
+    Object? captionImgUrl = freezed,
+    Object? isUploadingCaption = null,
     Object? photoSource = freezed,
     Object? isSubmitting = null,
     Object? errorMessage = freezed,
@@ -155,6 +167,14 @@ class _$NewSpotUiModelCopyWithImpl<$Res>
           ? _self.captionImagePath
           : captionImagePath // ignore: cast_nullable_to_non_nullable
               as String?,
+      captionImgUrl: freezed == captionImgUrl
+          ? _self.captionImgUrl
+          : captionImgUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isUploadingCaption: null == isUploadingCaption
+          ? _self.isUploadingCaption
+          : isUploadingCaption // ignore: cast_nullable_to_non_nullable
+              as bool,
       photoSource: freezed == photoSource
           ? _self.photoSource
           : photoSource // ignore: cast_nullable_to_non_nullable
@@ -286,6 +306,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             Set<String> selectedEnvironmentTags,
             bool isObstacleSectionExpanded,
             String? captionImagePath,
+            String? captionImgUrl,
+            bool isUploadingCaption,
             NewSpotPhotoSource? photoSource,
             bool isSubmitting,
             String? errorMessage)?
@@ -303,6 +325,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             _that.selectedEnvironmentTags,
             _that.isObstacleSectionExpanded,
             _that.captionImagePath,
+            _that.captionImgUrl,
+            _that.isUploadingCaption,
             _that.photoSource,
             _that.isSubmitting,
             _that.errorMessage);
@@ -334,6 +358,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             Set<String> selectedEnvironmentTags,
             bool isObstacleSectionExpanded,
             String? captionImagePath,
+            String? captionImgUrl,
+            bool isUploadingCaption,
             NewSpotPhotoSource? photoSource,
             bool isSubmitting,
             String? errorMessage)
@@ -350,6 +376,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             _that.selectedEnvironmentTags,
             _that.isObstacleSectionExpanded,
             _that.captionImagePath,
+            _that.captionImgUrl,
+            _that.isUploadingCaption,
             _that.photoSource,
             _that.isSubmitting,
             _that.errorMessage);
@@ -380,6 +408,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             Set<String> selectedEnvironmentTags,
             bool isObstacleSectionExpanded,
             String? captionImagePath,
+            String? captionImgUrl,
+            bool isUploadingCaption,
             NewSpotPhotoSource? photoSource,
             bool isSubmitting,
             String? errorMessage)?
@@ -396,6 +426,8 @@ extension NewSpotUiModelPatterns on NewSpotUiModel {
             _that.selectedEnvironmentTags,
             _that.isObstacleSectionExpanded,
             _that.captionImagePath,
+            _that.captionImgUrl,
+            _that.isUploadingCaption,
             _that.photoSource,
             _that.isSubmitting,
             _that.errorMessage);
@@ -416,6 +448,8 @@ class _NewSpotUiModel implements NewSpotUiModel {
       final Set<String> selectedEnvironmentTags = const <String>{},
       this.isObstacleSectionExpanded = true,
       this.captionImagePath,
+      this.captionImgUrl,
+      this.isUploadingCaption = false,
       this.photoSource,
       this.isSubmitting = false,
       this.errorMessage})
@@ -456,6 +490,11 @@ class _NewSpotUiModel implements NewSpotUiModel {
   @override
   final String? captionImagePath;
   @override
+  final String? captionImgUrl;
+  @override
+  @JsonKey()
+  final bool isUploadingCaption;
+  @override
   final NewSpotPhotoSource? photoSource;
   @override
   @JsonKey()
@@ -491,6 +530,10 @@ class _NewSpotUiModel implements NewSpotUiModel {
                 other.isObstacleSectionExpanded == isObstacleSectionExpanded) &&
             (identical(other.captionImagePath, captionImagePath) ||
                 other.captionImagePath == captionImagePath) &&
+            (identical(other.captionImgUrl, captionImgUrl) ||
+                other.captionImgUrl == captionImgUrl) &&
+            (identical(other.isUploadingCaption, isUploadingCaption) ||
+                other.isUploadingCaption == isUploadingCaption) &&
             (identical(other.photoSource, photoSource) ||
                 other.photoSource == photoSource) &&
             (identical(other.isSubmitting, isSubmitting) ||
@@ -509,13 +552,15 @@ class _NewSpotUiModel implements NewSpotUiModel {
       const DeepCollectionEquality().hash(_selectedEnvironmentTags),
       isObstacleSectionExpanded,
       captionImagePath,
+      captionImgUrl,
+      isUploadingCaption,
       photoSource,
       isSubmitting,
       errorMessage);
 
   @override
   String toString() {
-    return 'NewSpotUiModel(spotName: $spotName, selectedLocation: $selectedLocation, difficulty: $difficulty, selectedObstacleIds: $selectedObstacleIds, selectedEnvironmentTags: $selectedEnvironmentTags, isObstacleSectionExpanded: $isObstacleSectionExpanded, captionImagePath: $captionImagePath, photoSource: $photoSource, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
+    return 'NewSpotUiModel(spotName: $spotName, selectedLocation: $selectedLocation, difficulty: $difficulty, selectedObstacleIds: $selectedObstacleIds, selectedEnvironmentTags: $selectedEnvironmentTags, isObstacleSectionExpanded: $isObstacleSectionExpanded, captionImagePath: $captionImagePath, captionImgUrl: $captionImgUrl, isUploadingCaption: $isUploadingCaption, photoSource: $photoSource, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
   }
 }
 
@@ -535,6 +580,8 @@ abstract mixin class _$NewSpotUiModelCopyWith<$Res>
       Set<String> selectedEnvironmentTags,
       bool isObstacleSectionExpanded,
       String? captionImagePath,
+      String? captionImgUrl,
+      bool isUploadingCaption,
       NewSpotPhotoSource? photoSource,
       bool isSubmitting,
       String? errorMessage});
@@ -563,6 +610,8 @@ class __$NewSpotUiModelCopyWithImpl<$Res>
     Object? selectedEnvironmentTags = null,
     Object? isObstacleSectionExpanded = null,
     Object? captionImagePath = freezed,
+    Object? captionImgUrl = freezed,
+    Object? isUploadingCaption = null,
     Object? photoSource = freezed,
     Object? isSubmitting = null,
     Object? errorMessage = freezed,
@@ -596,6 +645,14 @@ class __$NewSpotUiModelCopyWithImpl<$Res>
           ? _self.captionImagePath
           : captionImagePath // ignore: cast_nullable_to_non_nullable
               as String?,
+      captionImgUrl: freezed == captionImgUrl
+          ? _self.captionImgUrl
+          : captionImgUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isUploadingCaption: null == isUploadingCaption
+          ? _self.isUploadingCaption
+          : isUploadingCaption // ignore: cast_nullable_to_non_nullable
+              as bool,
       photoSource: freezed == photoSource
           ? _self.photoSource
           : photoSource // ignore: cast_nullable_to_non_nullable

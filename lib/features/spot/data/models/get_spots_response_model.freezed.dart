@@ -14,6 +14,7 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$GetSpotsResponseModel {
+  bool get isSuccess;
   String get code;
   String get message;
   @JsonKey(name: 'result')
@@ -35,6 +36,8 @@ mixin _$GetSpotsResponseModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is GetSpotsResponseModel &&
+            (identical(other.isSuccess, isSuccess) ||
+                other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             const DeepCollectionEquality().equals(other.data, data));
@@ -42,12 +45,12 @@ mixin _$GetSpotsResponseModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, code, message, const DeepCollectionEquality().hash(data));
+  int get hashCode => Object.hash(runtimeType, isSuccess, code, message,
+      const DeepCollectionEquality().hash(data));
 
   @override
   String toString() {
-    return 'GetSpotsResponseModel(code: $code, message: $message, data: $data)';
+    return 'GetSpotsResponseModel(isSuccess: $isSuccess, code: $code, message: $message, data: $data)';
   }
 }
 
@@ -58,7 +61,8 @@ abstract mixin class $GetSpotsResponseModelCopyWith<$Res> {
       _$GetSpotsResponseModelCopyWithImpl;
   @useResult
   $Res call(
-      {String code,
+      {bool isSuccess,
+      String code,
       String message,
       @JsonKey(name: 'result') List<SpotModel>? data});
 }
@@ -76,11 +80,16 @@ class _$GetSpotsResponseModelCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? isSuccess = null,
     Object? code = null,
     Object? message = null,
     Object? data = freezed,
   }) {
     return _then(_self.copyWith(
+      isSuccess: null == isSuccess
+          ? _self.isSuccess
+          : isSuccess // ignore: cast_nullable_to_non_nullable
+              as bool,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -190,7 +199,7 @@ extension GetSpotsResponseModelPatterns on GetSpotsResponseModel {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String code, String message,
+    TResult Function(bool isSuccess, String code, String message,
             @JsonKey(name: 'result') List<SpotModel>? data)?
         $default, {
     required TResult orElse(),
@@ -198,7 +207,7 @@ extension GetSpotsResponseModelPatterns on GetSpotsResponseModel {
     final _that = this;
     switch (_that) {
       case _GetSpotsResponseModel() when $default != null:
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         return orElse();
     }
@@ -219,14 +228,14 @@ extension GetSpotsResponseModelPatterns on GetSpotsResponseModel {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String code, String message,
+    TResult Function(bool isSuccess, String code, String message,
             @JsonKey(name: 'result') List<SpotModel>? data)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _GetSpotsResponseModel():
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -246,14 +255,14 @@ extension GetSpotsResponseModelPatterns on GetSpotsResponseModel {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String code, String message,
+    TResult? Function(bool isSuccess, String code, String message,
             @JsonKey(name: 'result') List<SpotModel>? data)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _GetSpotsResponseModel() when $default != null:
-        return $default(_that.code, _that.message, _that.data);
+        return $default(_that.isSuccess, _that.code, _that.message, _that.data);
       case _:
         return null;
     }
@@ -262,16 +271,18 @@ extension GetSpotsResponseModelPatterns on GetSpotsResponseModel {
 
 /// @nodoc
 @JsonSerializable()
-class _GetSpotsResponseModel extends GetSpotsResponseModel {
+class _GetSpotsResponseModel implements GetSpotsResponseModel {
   const _GetSpotsResponseModel(
-      {required this.code,
+      {required this.isSuccess,
+      required this.code,
       required this.message,
       @JsonKey(name: 'result') final List<SpotModel>? data})
-      : _data = data,
-        super._();
+      : _data = data;
   factory _GetSpotsResponseModel.fromJson(Map<String, dynamic> json) =>
       _$GetSpotsResponseModelFromJson(json);
 
+  @override
+  final bool isSuccess;
   @override
   final String code;
   @override
@@ -308,6 +319,8 @@ class _GetSpotsResponseModel extends GetSpotsResponseModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _GetSpotsResponseModel &&
+            (identical(other.isSuccess, isSuccess) ||
+                other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             const DeepCollectionEquality().equals(other._data, _data));
@@ -315,12 +328,12 @@ class _GetSpotsResponseModel extends GetSpotsResponseModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, code, message, const DeepCollectionEquality().hash(_data));
+  int get hashCode => Object.hash(runtimeType, isSuccess, code, message,
+      const DeepCollectionEquality().hash(_data));
 
   @override
   String toString() {
-    return 'GetSpotsResponseModel(code: $code, message: $message, data: $data)';
+    return 'GetSpotsResponseModel(isSuccess: $isSuccess, code: $code, message: $message, data: $data)';
   }
 }
 
@@ -333,7 +346,8 @@ abstract mixin class _$GetSpotsResponseModelCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String code,
+      {bool isSuccess,
+      String code,
       String message,
       @JsonKey(name: 'result') List<SpotModel>? data});
 }
@@ -351,11 +365,16 @@ class __$GetSpotsResponseModelCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? isSuccess = null,
     Object? code = null,
     Object? message = null,
     Object? data = freezed,
   }) {
     return _then(_GetSpotsResponseModel(
+      isSuccess: null == isSuccess
+          ? _self.isSuccess
+          : isSuccess // ignore: cast_nullable_to_non_nullable
+              as bool,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable

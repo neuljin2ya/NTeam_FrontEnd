@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../domain/maps/entity/map_location.dart';
 import '../../../../router/app_router.dart';
+import '../../../home/presentation/viewmodel/home_view_model.dart';
 import '../util/new_spot_constants.dart';
 import '../viewmodel/new_spot_ui_model.dart';
 import '../viewmodel/new_spot_view_model.dart';
@@ -69,7 +71,17 @@ class _NewSpotPageState extends ConsumerState<NewSpotPage> {
       if (!mounted || file == null) {
         return;
       }
-      _viewModel.setCaptionImagePath(file.path);
+      await _viewModel.uploadCaptionImage(file.path);
+      if (!mounted) {
+        return;
+      }
+      final String? uploadError = ref.read(newSpotViewModelProvider).errorMessage;
+      if (uploadError != null &&
+          ref.read(newSpotViewModelProvider).captionImgUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(uploadError)),
+        );
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -133,22 +145,30 @@ class _NewSpotPageState extends ConsumerState<NewSpotPage> {
     );
   }
 
+  void _returnHomeAndRefreshSpots() {
+    if (!mounted) {
+      return;
+    }
+    unawaited(ref.read(homeViewModelProvider.notifier).loadAllSpots());
+    context.go(SGRoute.home.route);
+  }
+
   Future<void> _showSuccessModal() async {
     await showDialog<void>(
       context: context,
-      builder: (BuildContext context) => Dialog(
+      builder: (BuildContext dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         child: AppModal(
           title: '스팟이 등록되었어요',
           description: '내 스팟 목록에서 확인할 수 있습니다.',
           primaryButtonText: '확인',
           onPrimaryPressed: () {
-            Navigator.of(context).pop();
-            context.pop();
+            Navigator.of(dialogContext).pop();
+            _returnHomeAndRefreshSpots();
           },
           onClosePressed: () {
-            Navigator.of(context).pop();
-            context.pop();
+            Navigator.of(dialogContext).pop();
+            _returnHomeAndRefreshSpots();
           },
         ),
       ),
@@ -248,6 +268,7 @@ class _NewSpotPageState extends ConsumerState<NewSpotPage> {
             ),
             _BottomSaveBar(
               isSubmitting: uiState.isSubmitting,
+              isUploadingCaption: uiState.isUploadingCaption,
               onPressed: _onRegisterPressed,
             ),
           ],
@@ -306,6 +327,15 @@ class _PhotoUploadSection extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (uiState.isUploadingCaption)
+                    const ColoredBox(
+                      color: Color(0x99000000),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: FigmaColors.primary200,
+                        ),
+                      ),
+                    ),
                 ],
               )
             : _PhotoUploadPlaceholder(hasImage: false),
@@ -577,14 +607,18 @@ class _EnvironmentSection extends ConsumerWidget {
 class _BottomSaveBar extends StatelessWidget {
   const _BottomSaveBar({
     required this.isSubmitting,
+    required this.isUploadingCaption,
     required this.onPressed,
   });
 
   final bool isSubmitting;
+  final bool isUploadingCaption;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final bool isDisabled = isSubmitting || isUploadingCaption;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -593,9 +627,13 @@ class _BottomSaveBar extends StatelessWidget {
         border: Border(top: BorderSide(color: FigmaColors.gray400)),
       ),
       child: AppButton(
-        text: isSubmitting ? '저장 중…' : '등록',
+        text: isSubmitting
+            ? '저장 중…'
+            : isUploadingCaption
+                ? '이미지 업로드 중…'
+                : '등록',
         width: double.infinity,
-        onPressed: isSubmitting ? null : onPressed,
+        onPressed: isDisabled ? null : onPressed,
       ),
     );
   }

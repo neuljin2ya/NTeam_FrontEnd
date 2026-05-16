@@ -6,6 +6,7 @@ part 'add_spot_status_request_model.g.dart';
 @freezed
 abstract class AddSpotStatusRequestModel with _$AddSpotStatusRequestModel {
   const factory AddSpotStatusRequestModel({
+    required String description,
     required List<String> statuses,
   }) = _AddSpotStatusRequestModel;
 

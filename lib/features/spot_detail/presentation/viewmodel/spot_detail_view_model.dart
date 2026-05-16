@@ -69,10 +69,6 @@ class SpotDetailViewModel extends _$SpotDetailViewModel {
         errorMessage: null,
       );
 
-      if (refresh) {
-        return;
-      }
-
       await _resolveCaptionImageUrl(spot.captionImgUrl);
       unawaited(_loadVideos(spotId));
     } catch (_) {
@@ -159,7 +155,9 @@ class SpotDetailViewModel extends _$SpotDetailViewModel {
       final String localPath = await DownloadedFileStore.saveBytes(
         sourceKey: trimmedUrl,
         bytes: bytes,
-        extension: DownloadedFileStore.extensionFromUrl(trimmedUrl),
+        extension: DownloadedFileStore.extensionFromUrl(trimmedUrl) ??
+            DownloadedFileStore.extensionFromBytes(bytes) ??
+            '.mp4',
       );
 
       return SpotDetailVideoUiModel(
@@ -192,7 +190,9 @@ class SpotDetailViewModel extends _$SpotDetailViewModel {
   }
 
   bool _isSuccess(String code) =>
-      code.startsWith('SPOT200') || code.startsWith('COMMON200');
+      code.startsWith('SPOT200') ||
+      code.startsWith('COMMON200') ||
+      code.startsWith('VIDEO200');
 
   bool _isSaveSuccess(ApiResponse<SavedSpot> response) {
     if (response.data == null) {

@@ -17,7 +17,7 @@ mixin _$AddSpotStatusResponseModel {
   bool get isSuccess;
   String get code;
   String get message;
-  List<String>? get result;
+  SpotStatusListModel? get result;
 
   /// Create a copy of AddSpotStatusResponseModel
   /// with the given fields replaced by the non-null parameter values.
@@ -40,13 +40,13 @@ mixin _$AddSpotStatusResponseModel {
                 other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other.result, result));
+            (identical(other.result, result) || other.result == result));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, isSuccess, code, message,
-      const DeepCollectionEquality().hash(result));
+  int get hashCode =>
+      Object.hash(runtimeType, isSuccess, code, message, result);
 
   @override
   String toString() {
@@ -61,7 +61,12 @@ abstract mixin class $AddSpotStatusResponseModelCopyWith<$Res> {
       _$AddSpotStatusResponseModelCopyWithImpl;
   @useResult
   $Res call(
-      {bool isSuccess, String code, String message, List<String>? result});
+      {bool isSuccess,
+      String code,
+      String message,
+      SpotStatusListModel? result});
+
+  $SpotStatusListModelCopyWith<$Res>? get result;
 }
 
 /// @nodoc
@@ -98,8 +103,22 @@ class _$AddSpotStatusResponseModelCopyWithImpl<$Res>
       result: freezed == result
           ? _self.result
           : result // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as SpotStatusListModel?,
     ));
+  }
+
+  /// Create a copy of AddSpotStatusResponseModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SpotStatusListModelCopyWith<$Res>? get result {
+    if (_self.result == null) {
+      return null;
+    }
+
+    return $SpotStatusListModelCopyWith<$Res>(_self.result!, (value) {
+      return _then(_self.copyWith(result: value));
+    });
   }
 }
 
@@ -196,8 +215,8 @@ extension AddSpotStatusResponseModelPatterns on AddSpotStatusResponseModel {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            bool isSuccess, String code, String message, List<String>? result)?
+    TResult Function(bool isSuccess, String code, String message,
+            SpotStatusListModel? result)?
         $default, {
     required TResult orElse(),
   }) {
@@ -226,8 +245,8 @@ extension AddSpotStatusResponseModelPatterns on AddSpotStatusResponseModel {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(
-            bool isSuccess, String code, String message, List<String>? result)
+    TResult Function(bool isSuccess, String code, String message,
+            SpotStatusListModel? result)
         $default,
   ) {
     final _that = this;
@@ -254,8 +273,8 @@ extension AddSpotStatusResponseModelPatterns on AddSpotStatusResponseModel {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            bool isSuccess, String code, String message, List<String>? result)?
+    TResult? Function(bool isSuccess, String code, String message,
+            SpotStatusListModel? result)?
         $default,
   ) {
     final _that = this;
@@ -276,9 +295,8 @@ class _AddSpotStatusResponseModel extends AddSpotStatusResponseModel {
       {required this.isSuccess,
       required this.code,
       required this.message,
-      final List<String>? result})
-      : _result = result,
-        super._();
+      this.result})
+      : super._();
   factory _AddSpotStatusResponseModel.fromJson(Map<String, dynamic> json) =>
       _$AddSpotStatusResponseModelFromJson(json);
 
@@ -288,15 +306,8 @@ class _AddSpotStatusResponseModel extends AddSpotStatusResponseModel {
   final String code;
   @override
   final String message;
-  final List<String>? _result;
   @override
-  List<String>? get result {
-    final value = _result;
-    if (value == null) return null;
-    if (_result is EqualUnmodifiableListView) return _result;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+  final SpotStatusListModel? result;
 
   /// Create a copy of AddSpotStatusResponseModel
   /// with the given fields replaced by the non-null parameter values.
@@ -323,13 +334,13 @@ class _AddSpotStatusResponseModel extends AddSpotStatusResponseModel {
                 other.isSuccess == isSuccess) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
-            const DeepCollectionEquality().equals(other._result, _result));
+            (identical(other.result, result) || other.result == result));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, isSuccess, code, message,
-      const DeepCollectionEquality().hash(_result));
+  int get hashCode =>
+      Object.hash(runtimeType, isSuccess, code, message, result);
 
   @override
   String toString() {
@@ -347,7 +358,13 @@ abstract mixin class _$AddSpotStatusResponseModelCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {bool isSuccess, String code, String message, List<String>? result});
+      {bool isSuccess,
+      String code,
+      String message,
+      SpotStatusListModel? result});
+
+  @override
+  $SpotStatusListModelCopyWith<$Res>? get result;
 }
 
 /// @nodoc
@@ -382,10 +399,24 @@ class __$AddSpotStatusResponseModelCopyWithImpl<$Res>
           : message // ignore: cast_nullable_to_non_nullable
               as String,
       result: freezed == result
-          ? _self._result
+          ? _self.result
           : result // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as SpotStatusListModel?,
     ));
+  }
+
+  /// Create a copy of AddSpotStatusResponseModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SpotStatusListModelCopyWith<$Res>? get result {
+    if (_self.result == null) {
+      return null;
+    }
+
+    return $SpotStatusListModelCopyWith<$Res>(_self.result!, (value) {
+      return _then(_self.copyWith(result: value));
+    });
   }
 }
 

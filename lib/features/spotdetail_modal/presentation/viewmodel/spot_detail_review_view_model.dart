@@ -12,6 +12,7 @@ class SpotDetailReviewViewModel extends _$SpotDetailReviewViewModel {
 
   Future<String?> submit({
     required int spotId,
+    required String description,
     required List<String> statuses,
   }) async {
     if (state) {
@@ -24,6 +25,7 @@ class SpotDetailReviewViewModel extends _$SpotDetailReviewViewModel {
       final ApiResponse<List<String>> response =
           await ref.read(addSpotStatusUseCaseProvider).call(
                 spotId: spotId,
+                description: description,
                 statuses: statuses,
               );
 
@@ -42,11 +44,15 @@ class SpotDetailReviewViewModel extends _$SpotDetailReviewViewModel {
   }
 
   bool _isSuccess(ApiResponse<List<String>> response) {
-    if (response.data == null) {
+    final String code = response.code;
+    final bool isSuccessCode = code.startsWith('COMMON200') ||
+        code.startsWith('SPOT200') ||
+        code.startsWith('SPOT201');
+
+    if (!isSuccessCode) {
       return false;
     }
 
-    return response.code.startsWith('COMMON200') ||
-        response.code.startsWith('SPOT');
+    return response.data != null;
   }
 }

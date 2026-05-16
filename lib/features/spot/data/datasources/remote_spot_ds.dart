@@ -54,12 +54,16 @@ class RemoteSpotDataSource {
 
   Future<AddSpotStatusResponseModel> addSpotStatus({
     required int spotId,
+    required String description,
     required List<String> statuses,
   }) async {
     try {
       return await _api.addSpotStatus(
         spotId,
-        AddSpotStatusRequestModel(statuses: statuses).toJson(),
+        AddSpotStatusRequestModel(
+          description: description,
+          statuses: statuses,
+        ).toJson(),
       );
     } on DioException catch (e) {
       final Object? data = e.response?.data;

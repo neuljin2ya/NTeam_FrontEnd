@@ -42,7 +42,7 @@ final class UploadVideoViewModelProvider
 }
 
 String _$uploadVideoViewModelHash() =>
-    r'cb13aea473c317dd18dcd41cc6ebe0b0afc619ad';
+    r'ca4d37f073c296de89f00ea7cf268aaa1fdcd3d9';
 
 abstract class _$UploadVideoViewModel extends $Notifier<bool> {
   bool build();

@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../common/data/converters/json_primitives_converter.dart';
+import '../converters/flexible_spot_status_list_converter.dart';
+import 'spot_status_list_model.dart';
 
 part 'spot_model.freezed.dart';
 part 'spot_model.g.dart';
@@ -10,16 +12,18 @@ abstract class SpotModel with _$SpotModel {
   const factory SpotModel({
     @FlexibleIntConverter() required int spotId,
     required String name,
-    required String captionImgUrl,
+    @JsonKey(defaultValue: '') @Default('') String captionImgUrl,
     @FlexibleDoubleConverter() required double latitude,
     @FlexibleDoubleConverter() required double longitude,
     required String mainAddress,
     required String subAddress,
     required String difficulty,
-    required String description,
+    @JsonKey(defaultValue: '') @Default('') String description,
     @Default(<String>[]) List<String> features,
-    @Default(<String>[]) List<String> statusList,
-    required DateTime createdAt,
+    @FlexibleSpotStatusListConverter()
+    @Default(<SpotStatusListModel>[])
+    List<SpotStatusListModel> statusList,
+    @FlexibleDateTimeConverter() required DateTime createdAt,
   }) = _SpotModel;
 
   factory SpotModel.fromJson(Map<String, dynamic> json) =>

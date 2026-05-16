@@ -5,6 +5,9 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../config/theme/figma_colors.dart';
+import '../../../spot/domain/entity/spot.dart';
+
+typedef HomeSpotMarkerTapCallback = void Function(int spotId);
 
 /// 홈 지도에서 [Geolocator]로 위치를 받아 [NLocationOverlay]에 반영합니다.
 final class HomeMapLocationService extends ChangeNotifier {
@@ -13,9 +16,12 @@ final class HomeMapLocationService extends ChangeNotifier {
   StreamSubscription<Position>? _positionSubscription;
   NaverMapController? _mapController;
   NLocationOverlay? _locationOverlay;
+  final Map<String, NMarker> _spotMarkers = <String, NMarker>{};
   Position? _lastPosition;
   bool _isLoadingInitialLocation = true;
   double _bottomOverlayFraction = 0.4;
+
+  HomeSpotMarkerTapCallback? onSpotMarkerTap;
 
   Position? get lastPosition => _lastPosition;
   bool get isLoadingInitialLocation => _isLoadingInitialLocation;
@@ -165,6 +171,94 @@ final class HomeMapLocationService extends ChangeNotifier {
     await _moveCameraTo(NLatLng(latitude, longitude));
   }
 
+  /// 조회된 스팟 좌표로 마커를 갱신합니다.
+  Future<void> syncSpotMarkers(List<Spot> spots) async {
+    final NaverMapController? controller = _mapController;
+    if (controller == null) {
+      return;
+    }
+
+    final Set<int> nextSpotIds = spots.map((Spot spot) => spot.spotId).toSet();
+    final List<String> markerIdsToRemove = _spotMarkers.keys
+        .where((String markerId) {
+          final int? spotId = _parseSpotId(markerId);
+          return spotId == null || !nextSpotIds.contains(spotId);
+        })
+        .toList();
+
+    for (final String markerId in markerIdsToRemove) {
+      final NMarker? marker = _spotMarkers.remove(markerId);
+      if (marker != null) {
+        await controller.deleteOverlay(marker.info);
+      }
+    }
+
+    for (final Spot spot in spots) {
+      if (!_hasValidCoordinate(spot.latitude, spot.longitude)) {
+        continue;
+      }
+
+      final String markerId = _spotMarkerId(spot.spotId);
+      final NLatLng position = NLatLng(spot.latitude, spot.longitude);
+      final NOverlayCaption caption = NOverlayCaption(
+        text: spot.name,
+        color: FigmaColors.white,
+        haloColor: FigmaColors.black,
+      );
+
+      final NMarker? existing = _spotMarkers[markerId];
+      if (existing != null) {
+        existing
+          ..setPosition(position)
+          ..setCaption(caption);
+        continue;
+      }
+
+      final NMarker marker = NMarker(
+        id: markerId,
+        position: position,
+        iconTintColor: FigmaColors.primary100,
+        caption: caption,
+      );
+
+      final int spotId = spot.spotId;
+      marker.setOnTapListener((NMarker _) {
+        onSpotMarkerTap?.call(spotId);
+      });
+
+      await controller.addOverlay(marker);
+      _spotMarkers[markerId] = marker;
+    }
+  }
+
+  int? _parseSpotId(String markerId) =>
+      int.tryParse(markerId.replaceFirst('spot_', ''));
+
+  String _spotMarkerId(int spotId) => 'spot_$spotId';
+
+  bool _hasValidCoordinate(double latitude, double longitude) {
+    if (latitude == 0 && longitude == 0) {
+      return false;
+    }
+    if (latitude < -90 || latitude > 90) {
+      return false;
+    }
+    if (longitude < -180 || longitude > 180) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _clearSpotMarkers() async {
+    final NaverMapController? controller = _mapController;
+    for (final NMarker marker in _spotMarkers.values) {
+      if (controller != null) {
+        await controller.deleteOverlay(marker.info);
+      }
+    }
+    _spotMarkers.clear();
+  }
+
   Future<void> _moveCameraTo(NLatLng target) async {
     final NaverMapController? controller = _mapController;
     if (controller == null) {
@@ -182,10 +276,12 @@ final class HomeMapLocationService extends ChangeNotifier {
   @override
   void dispose() {
     unawaited(_positionSubscription?.cancel());
+    unawaited(_clearSpotMarkers());
     _positionSubscription = null;
     _mapController = null;
     _locationOverlay = null;
     _lastPosition = null;
+    onSpotMarkerTap = null;
     super.dispose();
   }
 }

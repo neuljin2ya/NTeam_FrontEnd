@@ -11,6 +11,7 @@ abstract class SpotRepository {
 
   Future<ApiResponse<List<String>>> addSpotStatus({
     required int spotId,
+    required String description,
     required List<String> statuses,
   });
 }

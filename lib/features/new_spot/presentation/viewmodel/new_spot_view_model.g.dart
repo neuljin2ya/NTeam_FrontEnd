@@ -41,7 +41,7 @@ final class NewSpotViewModelProvider
   }
 }
 
-String _$newSpotViewModelHash() => r'aad873ae860a17dc7e222d5decf8af0cfd256098';
+String _$newSpotViewModelHash() => r'83b1bd102ab0f28dfa420c8ad810115a5ee63099';
 
 abstract class _$NewSpotViewModel extends $Notifier<NewSpotUiModel> {
   NewSpotUiModel build();

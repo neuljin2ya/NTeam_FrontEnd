@@ -30,7 +30,9 @@ class SpotRepositoryImpl implements SpotRepository {
     return ApiResponse<List<Spot>>(
       code: response.code,
       message: response.message,
-      data: response.data?.map(SpotMapper.toEntity).toList(),
+      data: response.isSuccess && response.data != null
+          ? response.data!.map(SpotMapper.toEntity).toList()
+          : null,
     );
   }
 
@@ -43,7 +45,7 @@ class SpotRepositoryImpl implements SpotRepository {
     return ApiResponse<CreatedSpot>(
       code: response.code,
       message: response.message,
-      data: response.data != null
+      data: response.isSuccess && response.data != null
           ? CreateSpotMapper.toEntity(response.data!)
           : null,
     );
@@ -52,17 +54,21 @@ class SpotRepositoryImpl implements SpotRepository {
   @override
   Future<ApiResponse<List<String>>> addSpotStatus({
     required int spotId,
+    required String description,
     required List<String> statuses,
   }) async {
     final AddSpotStatusResponseModel response = await _dataSource.addSpotStatus(
       spotId: spotId,
+      description: description,
       statuses: statuses,
     );
 
     return ApiResponse<List<String>>(
       code: response.code,
       message: response.message,
-      data: response.isSuccess ? response.result : null,
+      data: response.isSuccess && response.result != null
+          ? response.result!.statuses
+          : null,
     );
   }
 }

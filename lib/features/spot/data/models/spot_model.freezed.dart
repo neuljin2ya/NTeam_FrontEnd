@@ -17,6 +17,7 @@ mixin _$SpotModel {
   @FlexibleIntConverter()
   int get spotId;
   String get name;
+  @JsonKey(defaultValue: '')
   String get captionImgUrl;
   @FlexibleDoubleConverter()
   double get latitude;
@@ -25,9 +26,12 @@ mixin _$SpotModel {
   String get mainAddress;
   String get subAddress;
   String get difficulty;
+  @JsonKey(defaultValue: '')
   String get description;
   List<String> get features;
-  List<String> get statusList;
+  @FlexibleSpotStatusListConverter()
+  List<SpotStatusListModel> get statusList;
+  @FlexibleDateTimeConverter()
   DateTime get createdAt;
 
   /// Create a copy of SpotModel
@@ -99,16 +103,16 @@ abstract mixin class $SpotModelCopyWith<$Res> {
   $Res call(
       {@FlexibleIntConverter() int spotId,
       String name,
-      String captionImgUrl,
+      @JsonKey(defaultValue: '') String captionImgUrl,
       @FlexibleDoubleConverter() double latitude,
       @FlexibleDoubleConverter() double longitude,
       String mainAddress,
       String subAddress,
       String difficulty,
-      String description,
+      @JsonKey(defaultValue: '') String description,
       List<String> features,
-      List<String> statusList,
-      DateTime createdAt});
+      @FlexibleSpotStatusListConverter() List<SpotStatusListModel> statusList,
+      @FlexibleDateTimeConverter() DateTime createdAt});
 }
 
 /// @nodoc
@@ -180,7 +184,7 @@ class _$SpotModelCopyWithImpl<$Res> implements $SpotModelCopyWith<$Res> {
       statusList: null == statusList
           ? _self.statusList
           : statusList // ignore: cast_nullable_to_non_nullable
-              as List<String>,
+              as List<SpotStatusListModel>,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -285,16 +289,17 @@ extension SpotModelPatterns on SpotModel {
     TResult Function(
             @FlexibleIntConverter() int spotId,
             String name,
-            String captionImgUrl,
+            @JsonKey(defaultValue: '') String captionImgUrl,
             @FlexibleDoubleConverter() double latitude,
             @FlexibleDoubleConverter() double longitude,
             String mainAddress,
             String subAddress,
             String difficulty,
-            String description,
+            @JsonKey(defaultValue: '') String description,
             List<String> features,
-            List<String> statusList,
-            DateTime createdAt)?
+            @FlexibleSpotStatusListConverter()
+            List<SpotStatusListModel> statusList,
+            @FlexibleDateTimeConverter() DateTime createdAt)?
         $default, {
     required TResult orElse(),
   }) {
@@ -337,16 +342,17 @@ extension SpotModelPatterns on SpotModel {
     TResult Function(
             @FlexibleIntConverter() int spotId,
             String name,
-            String captionImgUrl,
+            @JsonKey(defaultValue: '') String captionImgUrl,
             @FlexibleDoubleConverter() double latitude,
             @FlexibleDoubleConverter() double longitude,
             String mainAddress,
             String subAddress,
             String difficulty,
-            String description,
+            @JsonKey(defaultValue: '') String description,
             List<String> features,
-            List<String> statusList,
-            DateTime createdAt)
+            @FlexibleSpotStatusListConverter()
+            List<SpotStatusListModel> statusList,
+            @FlexibleDateTimeConverter() DateTime createdAt)
         $default,
   ) {
     final _that = this;
@@ -387,16 +393,17 @@ extension SpotModelPatterns on SpotModel {
     TResult? Function(
             @FlexibleIntConverter() int spotId,
             String name,
-            String captionImgUrl,
+            @JsonKey(defaultValue: '') String captionImgUrl,
             @FlexibleDoubleConverter() double latitude,
             @FlexibleDoubleConverter() double longitude,
             String mainAddress,
             String subAddress,
             String difficulty,
-            String description,
+            @JsonKey(defaultValue: '') String description,
             List<String> features,
-            List<String> statusList,
-            DateTime createdAt)?
+            @FlexibleSpotStatusListConverter()
+            List<SpotStatusListModel> statusList,
+            @FlexibleDateTimeConverter() DateTime createdAt)?
         $default,
   ) {
     final _that = this;
@@ -427,16 +434,18 @@ class _SpotModel implements SpotModel {
   const _SpotModel(
       {@FlexibleIntConverter() required this.spotId,
       required this.name,
-      required this.captionImgUrl,
+      @JsonKey(defaultValue: '') this.captionImgUrl = '',
       @FlexibleDoubleConverter() required this.latitude,
       @FlexibleDoubleConverter() required this.longitude,
       required this.mainAddress,
       required this.subAddress,
       required this.difficulty,
-      required this.description,
+      @JsonKey(defaultValue: '') this.description = '',
       final List<String> features = const <String>[],
-      final List<String> statusList = const <String>[],
-      required this.createdAt})
+      @FlexibleSpotStatusListConverter()
+      final List<SpotStatusListModel> statusList =
+          const <SpotStatusListModel>[],
+      @FlexibleDateTimeConverter() required this.createdAt})
       : _features = features,
         _statusList = statusList;
   factory _SpotModel.fromJson(Map<String, dynamic> json) =>
@@ -448,6 +457,7 @@ class _SpotModel implements SpotModel {
   @override
   final String name;
   @override
+  @JsonKey(defaultValue: '')
   final String captionImgUrl;
   @override
   @FlexibleDoubleConverter()
@@ -462,6 +472,7 @@ class _SpotModel implements SpotModel {
   @override
   final String difficulty;
   @override
+  @JsonKey(defaultValue: '')
   final String description;
   final List<String> _features;
   @override
@@ -472,16 +483,18 @@ class _SpotModel implements SpotModel {
     return EqualUnmodifiableListView(_features);
   }
 
-  final List<String> _statusList;
+  final List<SpotStatusListModel> _statusList;
   @override
   @JsonKey()
-  List<String> get statusList {
+  @FlexibleSpotStatusListConverter()
+  List<SpotStatusListModel> get statusList {
     if (_statusList is EqualUnmodifiableListView) return _statusList;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_statusList);
   }
 
   @override
+  @FlexibleDateTimeConverter()
   final DateTime createdAt;
 
   /// Create a copy of SpotModel
@@ -561,16 +574,16 @@ abstract mixin class _$SpotModelCopyWith<$Res>
   $Res call(
       {@FlexibleIntConverter() int spotId,
       String name,
-      String captionImgUrl,
+      @JsonKey(defaultValue: '') String captionImgUrl,
       @FlexibleDoubleConverter() double latitude,
       @FlexibleDoubleConverter() double longitude,
       String mainAddress,
       String subAddress,
       String difficulty,
-      String description,
+      @JsonKey(defaultValue: '') String description,
       List<String> features,
-      List<String> statusList,
-      DateTime createdAt});
+      @FlexibleSpotStatusListConverter() List<SpotStatusListModel> statusList,
+      @FlexibleDateTimeConverter() DateTime createdAt});
 }
 
 /// @nodoc
@@ -642,7 +655,7 @@ class __$SpotModelCopyWithImpl<$Res> implements _$SpotModelCopyWith<$Res> {
       statusList: null == statusList
           ? _self._statusList
           : statusList // ignore: cast_nullable_to_non_nullable
-              as List<String>,
+              as List<SpotStatusListModel>,
       createdAt: null == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
