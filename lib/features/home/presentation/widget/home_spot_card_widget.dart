@@ -40,7 +40,7 @@ class HomeSpotCardWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _SpotCardImage(imageUrl: captionImgUrl),
               const SizedBox(width: 16),
@@ -229,15 +229,19 @@ class _SpotInfoColumn extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Row(
+        Wrap(
           spacing: 4,
+          runSpacing: 4,
           children: statusTags
               .map(
                 (String tag) => Tag(
                   text: tag,
                   backgroundColor: FigmaColors.gray400,
                   textColor: AppSemanticColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   borderRadius: 2,
                   fontSize: 12,
                   fontWeight: FontWeight.w400,

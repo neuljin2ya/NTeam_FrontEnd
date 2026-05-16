@@ -70,11 +70,52 @@ class NewSpotViewModel extends _$NewSpotViewModel {
     state = state.copyWith(photoSource: source, errorMessage: null);
   }
 
-  void setCaptionImagePath(String? path) {
-    state = state.copyWith(captionImagePath: path, errorMessage: null);
+  Future<void> uploadCaptionImage(String path) async {
+    state = state.copyWith(
+      captionImagePath: path,
+      captionImgUrl: null,
+      isUploadingCaption: true,
+      errorMessage: null,
+    );
+
+    try {
+      final ApiResponse<UploadedFile> uploadResponse =
+          await ref.read(uploadFileUseCaseProvider).call(path);
+
+      if (!_isFileUploadSuccess(uploadResponse.code) ||
+          uploadResponse.data == null) {
+        state = state.copyWith(
+          captionImagePath: null,
+          captionImgUrl: null,
+          isUploadingCaption: false,
+          errorMessage: uploadResponse.message.isNotEmpty
+              ? uploadResponse.message
+              : '이미지 업로드에 실패했습니다.',
+        );
+        return;
+      }
+
+      state = state.copyWith(
+        captionImgUrl: uploadResponse.data!.fileUrl,
+        isUploadingCaption: false,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        captionImagePath: null,
+        captionImgUrl: null,
+        isUploadingCaption: false,
+        errorMessage: '이미지 업로드 중 오류가 발생했습니다.',
+      );
+    }
   }
 
-  bool _isSuccessCode(String code) => code.startsWith('COMMON200');
+  bool _isFileUploadSuccess(String code) =>
+      code.startsWith('COMMON200') || code.startsWith('FILE200');
+
+  bool _isSuccessCode(String code) =>
+      code.startsWith('COMMON200') ||
+      code.startsWith('SPOT200') ||
+      code.startsWith('SPOT201');
 
   Future<bool> submit() async {
     final String name = state.spotName.trim();
@@ -89,9 +130,18 @@ class NewSpotViewModel extends _$NewSpotViewModel {
       return false;
     }
 
-    final String? imagePath = state.captionImagePath;
-    if (imagePath == null || imagePath.trim().isEmpty) {
-      state = state.copyWith(errorMessage: '대표 사진을 등록해 주세요.');
+    if (state.isUploadingCaption) {
+      state = state.copyWith(errorMessage: '이미지 업로드가 완료될 때까지 기다려 주세요.');
+      return false;
+    }
+
+    final String? captionImgUrl = state.captionImgUrl?.trim();
+    if (captionImgUrl == null || captionImgUrl.isEmpty) {
+      state = state.copyWith(
+        errorMessage: state.captionImagePath != null
+            ? '이미지 업로드에 실패했습니다. 다시 선택해 주세요.'
+            : '대표 사진을 등록해 주세요.',
+      );
       return false;
     }
 
@@ -108,19 +158,6 @@ class NewSpotViewModel extends _$NewSpotViewModel {
     state = state.copyWith(isSubmitting: true, errorMessage: null);
 
     try {
-      final ApiResponse<UploadedFile> uploadResponse =
-          await ref.read(uploadFileUseCaseProvider).call(imagePath);
-
-      if (!_isSuccessCode(uploadResponse.code) || uploadResponse.data == null) {
-        state = state.copyWith(
-          isSubmitting: false,
-          errorMessage: uploadResponse.message.isNotEmpty
-              ? uploadResponse.message
-              : '이미지 업로드에 실패했습니다.',
-        );
-        return false;
-      }
-
       final ({String main, String sub}) addressParts =
           NewSpotAddressMapper.fromMapLocation(location);
 
@@ -131,7 +168,7 @@ class NewSpotViewModel extends _$NewSpotViewModel {
 
       final CreateSpotRequest request = CreateSpotRequest(
         name: name,
-        captionImgUrl: uploadResponse.data!.fileUrl,
+        captionImgUrl: captionImgUrl,
         latitude: location.latitude.toString(),
         longitude: location.longitude.toString(),
         mainAddress: addressParts.main,

@@ -9,17 +9,20 @@ part of 'create_spot_response_model.dart';
 _CreateSpotResponseModel _$CreateSpotResponseModelFromJson(
         Map<String, dynamic> json) =>
     _CreateSpotResponseModel(
+      isSuccess: json['isSuccess'] as bool,
       code: json['code'] as String,
       message: json['message'] as String,
-      data: json['data'] == null
+      data: json['result'] == null
           ? null
-          : CreateSpotDataModel.fromJson(json['data'] as Map<String, dynamic>),
+          : CreateSpotDataModel.fromJson(
+              json['result'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CreateSpotResponseModelToJson(
         _CreateSpotResponseModel instance) =>
     <String, dynamic>{
+      'isSuccess': instance.isSuccess,
       'code': instance.code,
       'message': instance.message,
-      'data': instance.data,
+      'result': instance.data,
     };

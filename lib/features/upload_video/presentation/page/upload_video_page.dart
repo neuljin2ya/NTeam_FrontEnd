@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
+import '../../../../common/app_modal.dart';
 import '../../../../common/app_top_bar.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../viewmodel/upload_video_view_model.dart';
@@ -48,15 +49,15 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
   XFile? _videoFile;
   String? _thumbnailPath;
   bool _isCompressingVideo = false;
-  bool _hasSkillInput = false;
+  bool _isUploadingVideoFile = false;
+  bool _isVideoFileUploaded = false;
   bool _hasDescription = false;
 
-  bool get _canAddSkill {
-    return _hasSkillInput && _skills.length < _maxSkillCount;
-  }
-
   bool get _canComplete {
-    return _videoFile != null && _skills.isNotEmpty && _hasDescription;
+    return _videoFile != null &&
+        _isVideoFileUploaded &&
+        _skills.isNotEmpty &&
+        _hasDescription;
   }
 
   @override
@@ -65,12 +66,6 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
     _skillController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  void _handleSkillTextChanged(String value) {
-    setState(() {
-      _hasSkillInput = value.trim().isNotEmpty;
-    });
   }
 
   void _handleDescriptionChanged(String value) {
@@ -91,7 +86,6 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
         _skills.add(skill);
       }
       _skillController.clear();
-      _hasSkillInput = false;
     });
 
     FocusScope.of(context).unfocus();
@@ -145,34 +139,113 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
   }
 
   Future<void> _submitUpload() async {
-    final XFile? videoFile = _videoFile;
-    if (videoFile == null || widget.spotId <= 0) {
+    if (widget.spotId <= 0) {
       return;
     }
 
-    final int videoBytes = await File(videoFile.path).length();
-    if (videoBytes > _maxVideoBytes) {
-      _showPickerMessage('영상 크기는 100MB 이하여야 합니다.');
-      return;
+    final UploadVideoViewModel viewModel =
+        ref.read(uploadVideoViewModelProvider.notifier);
+
+    if (!_isVideoFileUploaded) {
+      final XFile? videoFile = _videoFile;
+      if (videoFile == null) {
+        return;
+      }
+
+      final int videoBytes = await File(videoFile.path).length();
+      if (videoBytes > _maxVideoBytes) {
+        _showPickerMessage('영상 크기는 100MB 이하여야 합니다.');
+        return;
+      }
+
+      final String? fileError = await viewModel.uploadVideoFile(videoFile.path);
+      if (!mounted) {
+        return;
+      }
+      if (fileError != null) {
+        _showPickerMessage(fileError);
+        return;
+      }
+
+      setState(() => _isVideoFileUploaded = true);
     }
 
-    final String? errorMessage =
-        await ref.read(uploadVideoViewModelProvider.notifier).upload(
-              spotId: widget.spotId,
-              filePath: videoFile.path,
-              title: _buildVideoTitle(),
-            );
+    final String? errorMessage = await viewModel.registerVideo(
+      spotId: widget.spotId,
+      title: _buildVideoTitle(),
+    );
 
     if (!mounted) {
       return;
     }
 
     if (errorMessage == null) {
-      context.pop(true);
+      await _showUploadSuccessModal();
       return;
     }
 
     _showPickerMessage(errorMessage);
+  }
+
+  Future<void> _uploadVideoFileAfterSelection(String filePath) async {
+    setState(() => _isUploadingVideoFile = true);
+
+    ref.read(uploadVideoViewModelProvider.notifier).clearUploadedVideoUrl();
+
+    final String? errorMessage = await ref
+        .read(uploadVideoViewModelProvider.notifier)
+        .uploadVideoFile(filePath);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() => _isUploadingVideoFile = false);
+
+    if (errorMessage != null) {
+      setState(() {
+        _videoFile = null;
+        _thumbnailPath = null;
+        _isVideoFileUploaded = false;
+      });
+      _showPickerMessage(errorMessage);
+      return;
+    }
+
+    setState(() => _isVideoFileUploaded = true);
+  }
+
+  void _returnToSpotDetailAfterUpload() {
+    if (!mounted) {
+      return;
+    }
+    if (context.canPop()) {
+      context.pop(true);
+    }
+  }
+
+  Future<void> _showUploadSuccessModal() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AppModal(
+          title: '영상이 업로드되었어요',
+          description: '스팟 상세에서 확인할 수 있습니다.',
+          primaryButtonText: '확인',
+          primaryButtonColor: FigmaColors.primaryMain,
+          onPrimaryPressed: () {
+            Navigator.of(dialogContext).pop();
+            _returnToSpotDetailAfterUpload();
+          },
+          onClosePressed: () {
+            Navigator.of(dialogContext).pop();
+            _returnToSpotDetailAfterUpload();
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _pickVideoFromGallery() async {
@@ -234,6 +307,8 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
         _videoFile = compressed;
         _thumbnailPath = thumbnailPath;
       });
+
+      await _uploadVideoFileAfterSelection(compressed.path);
     } on PlatformException catch (error) {
       if (mounted) {
         setState(() => _isCompressingVideo = false);
@@ -304,8 +379,10 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isUploading = ref.watch(uploadVideoViewModelProvider);
-    final bool isBusy = isUploading || _isCompressingVideo;
+    final bool isRegisteringVideo = ref.watch(uploadVideoViewModelProvider);
+    final bool isInteractionBlocked = isRegisteringVideo ||
+        _isCompressingVideo ||
+        _isUploadingVideoFile;
 
     return Scaffold(
       backgroundColor: FigmaColors.black,
@@ -318,18 +395,19 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
                 AppTopBar(
                   title: '영상 업로드',
                   actionText: '완료',
-                  actionTextColor: _canComplete && !isBusy
+                  actionTextColor: _canComplete && !isInteractionBlocked
                       ? FigmaColors.primary100
                       : FigmaColors.gray100,
-                  onBackPressed: isBusy
+                  onBackPressed: isInteractionBlocked
                       ? null
                       : () {
                           if (context.canPop()) {
                             context.pop();
                           }
                         },
-                  onActionPressed:
-                      _canComplete && !isBusy ? _showUploadConfirmModal : null,
+                  onActionPressed: _canComplete && !isInteractionBlocked
+                      ? _showUploadConfirmModal
+                      : null,
                   backgroundColor: FigmaColors.black,
                 ),
                 Expanded(
@@ -342,8 +420,11 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
                         UploadVideoPreview(
                           thumbnailPath: _thumbnailPath,
                           isCompressing: _isCompressingVideo,
-                          onChangeVideoPressed:
-                              isBusy ? null : _pickVideoFromGallery,
+                          isUploading: _isUploadingVideoFile,
+                          isRegistering: isRegisteringVideo,
+                          onChangeVideoPressed: isInteractionBlocked
+                              ? null
+                              : _pickVideoFromGallery,
                         ),
                         const SizedBox(height: 40),
                         const Divider(
@@ -355,10 +436,9 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
                         UploadVideoSkillSection(
                           controller: _skillController,
                           skills: _skills,
-                          canAddSkill: _canAddSkill && !isBusy,
+                          enabled: !_isCompressingVideo,
                           onAddSkill: _addSkill,
                           onRemoveSkill: _removeSkill,
-                          onSkillTextChanged: _handleSkillTextChanged,
                         ),
                         const SizedBox(height: 40),
                         UploadVideoDescriptionSection(
@@ -372,31 +452,6 @@ class _UploadVideoPageState extends ConsumerState<UploadVideoPage> {
                 ),
               ],
             ),
-            if (isUploading)
-              const ColoredBox(
-                color: Color(0x99000000),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      CircularProgressIndicator(
-                        color: FigmaColors.primary100,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        '영상을 업로드하는 중입니다.',
-                        style: TextStyle(
-                          color: FigmaColors.white,
-                          fontSize: 14,
-                          fontFamily: 'SUIT',
-                          fontWeight: FontWeight.w400,
-                          height: 1.43,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ),
       ),

@@ -20,6 +20,8 @@ abstract class NewSpotUiModel with _$NewSpotUiModel {
     @Default(<String>{}) Set<String> selectedEnvironmentTags,
     @Default(true) bool isObstacleSectionExpanded,
     String? captionImagePath,
+    String? captionImgUrl,
+    @Default(false) bool isUploadingCaption,
     NewSpotPhotoSource? photoSource,
     @Default(false) bool isSubmitting,
     String? errorMessage,

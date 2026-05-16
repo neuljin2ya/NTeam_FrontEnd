@@ -1,252 +1,141 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../common/app_navigation_bar.dart';
-import '../../../../common/difficulty_tag.dart';
-import '../../../../common/tag.dart';
+import '../../../../common/spot_difficulty_mapper.dart';
+import '../../../../common/spot_key_label_mapper.dart';
+import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../router/app_router.dart';
+import '../../../../router/route_navigation.dart';
+import '../../../../router/router_location_provider.dart';
+import '../../../spot/domain/entity/spot.dart';
+import '../viewmodel/download_spot_ui_model.dart';
+import '../viewmodel/download_spot_view_model.dart';
+import '../widget/saved_spot_list_card_widget.dart';
 
-class DownloadSpotPage extends StatelessWidget {
+class DownloadSpotPage extends ConsumerStatefulWidget {
   const DownloadSpotPage({super.key});
 
-  static const List<_DownloadedSpotItem> _items = <_DownloadedSpotItem>[
-    _DownloadedSpotItem(
-      title: '한남동 골목',
-      address: '서울 용산구 대사관로5길 34',
-      difficulty: DifficultyLevel.low,
-      imageUrl:
-          'https://www.figma.com/api/mcp/asset/4967211c-97ac-4785-ad97-39bdb2bacc01',
-      statusTags: <String>['상태1', '상태2', '상태3'],
-    ),
-    _DownloadedSpotItem(
-      title: '한남동 골목',
-      address: '서울 용산구 대사관로5길 34',
-      difficulty: DifficultyLevel.medium,
-      imageUrl:
-          'https://www.figma.com/api/mcp/asset/4c830488-de3a-44b7-8881-a640eb8cc58d',
-      statusTags: <String>['상태1', '상태2', '상태3'],
-    ),
-    _DownloadedSpotItem(
-      title: '한남동 골목',
-      address: '서울 용산구 대사관로5길 34',
-      difficulty: DifficultyLevel.high,
-      imageUrl:
-          'https://www.figma.com/api/mcp/asset/4c830488-de3a-44b7-8881-a640eb8cc58d',
-      statusTags: <String>['상태1', '상태2', '상태3'],
-    ),
-  ];
+  @override
+  ConsumerState<DownloadSpotPage> createState() => _DownloadSpotPageState();
+}
+
+class _DownloadSpotPageState extends ConsumerState<DownloadSpotPage> {
+  DownloadSpotViewModel get _viewModel =>
+      ref.read(downloadSpotViewModelProvider.notifier);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_viewModel.loadSavedSpots());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(routerLocationProvider, (String? previous, String next) {
+      if (didNavigateToRoute(
+        previous: previous,
+        next: next,
+        route: SGRoute.downloadSpot.route,
+      )) {
+        unawaited(
+          ref.read(downloadSpotViewModelProvider.notifier).loadSavedSpots(),
+        );
+      }
+    });
+
+    final DownloadSpotUiModel ui = ref.watch(downloadSpotViewModelProvider);
+    final double navBottomInset = AppNavigationBar.bottomInset(context);
+
     return Scaffold(
       backgroundColor: FigmaColors.black,
       body: SafeArea(
         bottom: false,
-        child: Stack(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 65, 16, 132),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    '파쿠르왕님이 저장한 스팟',
-                    style: TextStyle(
-                      color: FigmaColors.white,
-                      fontSize: 20,
-                      fontFamily: 'SUIT',
-                      fontWeight: FontWeight.w700,
-                      height: 1.42,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Text(
-                    '${_items.length}개',
-                    style: const TextStyle(
-                      color: FigmaColors.gray100,
-                      fontSize: 12,
-                      fontFamily: 'SUIT',
-                      fontWeight: FontWeight.w400,
-                      height: 1.42,
-                      letterSpacing: -0.12,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: EdgeInsets.zero,
-                      itemCount: _items.length,
-                      separatorBuilder: (BuildContext context, int index) {
-                        return const SizedBox(height: 12);
-                      },
-                      itemBuilder: (BuildContext context, int index) {
-                        return _DownloadedSpotCard(
-                          item: _items[index],
-                          onTap: () {
-                            // TODO: 실제 저장 스팟 id를 extra/path로 전달해 상세 API 조회에 사용.
-                            context.push(SGRoute.spotDetail.route);
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: AppNavigationBar(
-                selectedItem: AppNavigationBarItem.saved,
-                onSpotPressed: () {
-                  context.go(SGRoute.home.route);
-                },
-                onAddPressed: () {
-                  // TODO: 새 스팟 추가/등록 화면 연결.
-                },
-                onSavedPressed: () {},
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DownloadedSpotCard extends StatelessWidget {
-  const _DownloadedSpotCard({
-    required this.item,
-    required this.onTap,
-  });
-
-  final _DownloadedSpotItem item;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: FigmaColors.gray600,
-      borderRadius: BorderRadius.circular(16),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
+          padding: EdgeInsets.fromLTRB(16, 65, 16, 16 + navBottomInset),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  // TODO: 저장 스팟 목록 API의 썸네일 URL로 교체.
-                  item.imageUrl,
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.cover,
+              Text(
+                '파쿠르왕님이 저장한 스팟',
+                style: AppTextStyles.headlineLarge.copyWith(
+                  color: FigmaColors.white,
+                  letterSpacing: -0.4,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(child: _DownloadedSpotCardInfo(item: item)),
-              const Icon(
-                Icons.chevron_right,
-                size: 16,
-                color: FigmaColors.gray100,
+              const SizedBox(height: 25),
+              Text(
+                '${ui.spots.length}개',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: FigmaColors.gray100,
+                  fontSize: 12,
+                  letterSpacing: -0.12,
+                ),
               ),
+              const SizedBox(height: 8),
+              Expanded(child: _buildBody(context, ui)),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _DownloadedSpotCardInfo extends StatelessWidget {
-  const _DownloadedSpotCardInfo({required this.item});
+  Widget _buildBody(BuildContext context, DownloadSpotUiModel ui) {
+    if (ui.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: FigmaColors.primary200),
+      );
+    }
 
-  final _DownloadedSpotItem item;
+    if (ui.errorMessage != null) {
+      return Center(
+        child: Text(
+          ui.errorMessage!,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(color: FigmaColors.gray100),
+        ),
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 72,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Flexible(
-                child: Text(
-                  item.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: FigmaColors.white,
-                    fontSize: 16,
-                    fontFamily: 'SUIT',
-                    fontWeight: FontWeight.w700,
-                    height: 1.42,
-                    letterSpacing: -0.16,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              DifficultyTag(level: item.difficulty),
-            ],
+    if (ui.spots.isEmpty) {
+      return Center(
+        child: Text(
+          '저장한 스팟이 없습니다.',
+          style: AppTextStyles.bodyMedium.copyWith(color: FigmaColors.gray100),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: ui.spots.length,
+      separatorBuilder: (BuildContext context, int index) {
+        return const SizedBox(height: 12);
+      },
+      itemBuilder: (BuildContext context, int index) {
+        final Spot spot = ui.spots[index];
+        final String captionImgUrl = spot.captionImgUrl.trim();
+        return SavedSpotListCardWidget(
+          title: spot.name,
+          address: spot.fullAddress,
+          captionImgUrl:
+              captionImgUrl.isEmpty ? null : captionImgUrl,
+          difficulty: SpotDifficultyMapper.toLevel(spot.difficulty),
+          statusTags: SpotKeyLabelMapper.mapStatusLabels(
+            spot.latestStatusList?.statuses ?? const <String>[],
           ),
-          const SizedBox(height: 2),
-          Text(
-            item.address,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: FigmaColors.gray100,
-              fontSize: 10,
-              fontFamily: 'SUIT',
-              fontWeight: FontWeight.w400,
-              height: 1.42,
-              letterSpacing: -0.1,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: item.statusTags
-                .map(
-                  (String tag) => Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Tag(
-                      text: tag,
-                      backgroundColor: FigmaColors.gray400,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      borderRadius: 2,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-      ),
+          onTap: () {
+            context.push('${SGRoute.spotDetail.route}/${spot.spotId}');
+          },
+        );
+      },
     );
   }
-}
-
-class _DownloadedSpotItem {
-  const _DownloadedSpotItem({
-    required this.title,
-    required this.address,
-    required this.difficulty,
-    required this.imageUrl,
-    required this.statusTags,
-  });
-
-  final String title;
-  final String address;
-  final DifficultyLevel difficulty;
-  final String imageUrl;
-  final List<String> statusTags;
 }

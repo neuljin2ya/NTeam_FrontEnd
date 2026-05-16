@@ -8,15 +8,12 @@ part 'create_spot_response_model.g.dart';
 @freezed
 abstract class CreateSpotResponseModel with _$CreateSpotResponseModel {
   const factory CreateSpotResponseModel({
+    required bool isSuccess,
     required String code,
     required String message,
-    CreateSpotDataModel? data,
+    @JsonKey(name: 'result') CreateSpotDataModel? data,
   }) = _CreateSpotResponseModel;
 
   factory CreateSpotResponseModel.fromJson(Map<String, dynamic> json) =>
       _$CreateSpotResponseModelFromJson(json);
-
-  const CreateSpotResponseModel._();
-
-  bool get isSuccess => code.startsWith('SPOT201');
 }

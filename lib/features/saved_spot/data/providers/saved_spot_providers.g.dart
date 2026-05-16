@@ -139,6 +139,50 @@ final class SavedSpotRepositoryProvider extends $FunctionalProvider<
 String _$savedSpotRepositoryHash() =>
     r'c15112045a10930b52c771d3173239c04d002a8a';
 
+@ProviderFor(getSavedSpotsUseCase)
+final getSavedSpotsUseCaseProvider = GetSavedSpotsUseCaseProvider._();
+
+final class GetSavedSpotsUseCaseProvider extends $FunctionalProvider<
+    GetSavedSpotsUseCase,
+    GetSavedSpotsUseCase,
+    GetSavedSpotsUseCase> with $Provider<GetSavedSpotsUseCase> {
+  GetSavedSpotsUseCaseProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'getSavedSpotsUseCaseProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$getSavedSpotsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetSavedSpotsUseCase> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  GetSavedSpotsUseCase create(Ref ref) {
+    return getSavedSpotsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetSavedSpotsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetSavedSpotsUseCase>(value),
+    );
+  }
+}
+
+String _$getSavedSpotsUseCaseHash() =>
+    r'a32d27ae8d8eae3918e9fe03b4a2a28d903ec751';
+
 @ProviderFor(saveSpotUseCase)
 final saveSpotUseCaseProvider = SaveSpotUseCaseProvider._();
 

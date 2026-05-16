@@ -12,8 +12,10 @@ _AddSpotStatusResponseModel _$AddSpotStatusResponseModelFromJson(
       isSuccess: json['isSuccess'] as bool,
       code: json['code'] as String,
       message: json['message'] as String,
-      result:
-          (json['result'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      result: json['result'] == null
+          ? null
+          : SpotStatusListModel.fromJson(
+              json['result'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AddSpotStatusResponseModelToJson(

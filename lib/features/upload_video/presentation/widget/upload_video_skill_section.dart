@@ -2,23 +2,66 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/theme/figma_colors.dart';
 
-class UploadVideoSkillSection extends StatelessWidget {
+class UploadVideoSkillSection extends StatefulWidget {
   const UploadVideoSkillSection({
     super.key,
     required this.controller,
     required this.skills,
-    required this.canAddSkill,
     required this.onAddSkill,
     required this.onRemoveSkill,
-    required this.onSkillTextChanged,
+    this.maxSkillCount = 8,
+    this.enabled = true,
   });
 
   final TextEditingController controller;
   final List<String> skills;
-  final bool canAddSkill;
   final VoidCallback onAddSkill;
   final ValueChanged<String> onRemoveSkill;
-  final ValueChanged<String> onSkillTextChanged;
+  final int maxSkillCount;
+  final bool enabled;
+
+  @override
+  State<UploadVideoSkillSection> createState() => _UploadVideoSkillSectionState();
+}
+
+class _UploadVideoSkillSectionState extends State<UploadVideoSkillSection> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onSkillTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant UploadVideoSkillSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onSkillTextChanged);
+      widget.controller.addListener(_onSkillTextChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onSkillTextChanged);
+    super.dispose();
+  }
+
+  void _onSkillTextChanged() {
+    setState(() {});
+  }
+
+  bool get _canAddSkill {
+    return widget.enabled &&
+        widget.controller.text.trim().isNotEmpty &&
+        widget.skills.length < widget.maxSkillCount;
+  }
+
+  void _tryAddSkill() {
+    if (!_canAddSkill) {
+      return;
+    }
+    widget.onAddSkill();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,28 +79,28 @@ class UploadVideoSkillSection extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: _SkillInput(
-                  controller: controller,
-                  onSubmitted: (_) => onAddSkill(),
-                  onChanged: onSkillTextChanged,
+                  controller: widget.controller,
+                  enabled: widget.enabled,
+                  onSubmitted: _tryAddSkill,
                 ),
               ),
               const SizedBox(width: 10),
               _AddSkillButton(
-                isEnabled: canAddSkill,
-                onPressed: canAddSkill ? onAddSkill : null,
+                isEnabled: _canAddSkill,
+                onPressed: _canAddSkill ? _tryAddSkill : null,
               ),
             ],
           ),
-          if (skills.isNotEmpty) ...<Widget>[
+          if (widget.skills.isNotEmpty) ...<Widget>[
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: skills
+              children: widget.skills
                   .map(
                     (String skill) => _SkillChip(
                       text: skill,
-                      onDeleted: () => onRemoveSkill(skill),
+                      onDeleted: () => widget.onRemoveSkill(skill),
                     ),
                   )
                   .toList(),
@@ -112,13 +155,13 @@ class _SectionLabel extends StatelessWidget {
 class _SkillInput extends StatelessWidget {
   const _SkillInput({
     required this.controller,
+    required this.enabled,
     required this.onSubmitted,
-    required this.onChanged,
   });
 
   final TextEditingController controller;
-  final ValueChanged<String> onSubmitted;
-  final ValueChanged<String> onChanged;
+  final bool enabled;
+  final VoidCallback onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -126,8 +169,8 @@ class _SkillInput extends StatelessWidget {
       height: 47,
       child: TextField(
         controller: controller,
-        onSubmitted: onSubmitted,
-        onChanged: onChanged,
+        enabled: enabled,
+        onSubmitted: enabled ? (_) => onSubmitted() : null,
         textInputAction: TextInputAction.done,
         cursorColor: FigmaColors.white,
         style: const TextStyle(

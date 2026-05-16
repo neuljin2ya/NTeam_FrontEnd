@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../common/app_button.dart';
+import '../../../../common/app_modal.dart';
 import '../../../../common/app_top_bar.dart';
 import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
@@ -51,6 +53,7 @@ class _SpotDetailReviewPageState extends ConsumerState<SpotDetailReviewPage> {
         .read(spotDetailReviewViewModelProvider.notifier)
         .submit(
           spotId: widget.spotId,
+          description: _reviewController.text.trim(),
           statuses: widget.selectedStatusIds,
         );
 
@@ -63,7 +66,35 @@ class _SpotDetailReviewPageState extends ConsumerState<SpotDetailReviewPage> {
       return;
     }
 
-    Navigator.of(context).pop(true);
+    await _showSuccessModal();
+  }
+
+  Future<void> _showSuccessModal() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AppModal(
+          title: '스팟 상태 등록이 완료되었어요',
+          description: '스팟 상세 화면에서 확인할 수 있습니다.',
+          primaryButtonText: '확인',
+          primaryButtonColor: FigmaColors.primaryMain,
+          onPrimaryPressed: () {
+            Navigator.of(dialogContext).pop();
+            if (mounted) {
+              Navigator.of(context).pop(true);
+            }
+          },
+          onClosePressed: () {
+            Navigator.of(dialogContext).pop();
+            if (mounted) {
+              Navigator.of(context).pop(true);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -79,13 +110,12 @@ class _SpotDetailReviewPageState extends ConsumerState<SpotDetailReviewPage> {
     return Scaffold(
       backgroundColor: FigmaColors.black,
       body: SafeArea(
-        bottom: false,
         child: Column(
           children: <Widget>[
             AppTopBar(
               title: '최근 스팟 상태',
               onBackPressed: () {
-                Navigator.of(context).maybePop();
+                GoRouter.of(context).pop();
               },
               backgroundColor: FigmaColors.black,
             ),

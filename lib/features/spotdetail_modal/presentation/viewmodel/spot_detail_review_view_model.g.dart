@@ -42,7 +42,7 @@ final class SpotDetailReviewViewModelProvider
 }
 
 String _$spotDetailReviewViewModelHash() =>
-    r'd2f5f938874be757e5890f6d5433c53bc400eaa8';
+    r'6af3baf21f1a706fbf035dbfa8805e4052363afb';
 
 abstract class _$SpotDetailReviewViewModel extends $Notifier<bool> {
   bool build();

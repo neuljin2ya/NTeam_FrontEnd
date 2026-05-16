@@ -8,6 +8,7 @@ part 'get_spots_response_model.g.dart';
 @freezed
 abstract class GetSpotsResponseModel with _$GetSpotsResponseModel {
   const factory GetSpotsResponseModel({
+    required bool isSuccess,
     required String code,
     required String message,
     @JsonKey(name: 'result') List<SpotModel>? data,
@@ -15,8 +16,4 @@ abstract class GetSpotsResponseModel with _$GetSpotsResponseModel {
 
   factory GetSpotsResponseModel.fromJson(Map<String, dynamic> json) =>
       _$GetSpotsResponseModelFromJson(json);
-
-  const GetSpotsResponseModel._();
-
-  bool get isSuccess => code.startsWith('SPOT200');
 }

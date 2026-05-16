@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../common/app_top_bar.dart';
 import '../../../../config/theme/figma_colors.dart';
@@ -70,7 +71,7 @@ class _SpotDetailStatusPageState extends State<SpotDetailStatusPage> {
       return;
     }
 
-    Navigator.of(context).maybePop();
+    GoRouter.of(context).pop();
   }
 
   void _toggleOption(String optionId) {

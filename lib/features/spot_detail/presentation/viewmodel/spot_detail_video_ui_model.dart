@@ -7,7 +7,7 @@ abstract class SpotDetailVideoUiModel with _$SpotDetailVideoUiModel {
   const factory SpotDetailVideoUiModel({
     required int videoId,
     required String title,
-    /// `api/file/download` 바이너리를 임시 파일로 저장한 로컬 경로.
+    /// `api/file/download`로 변환된 영상 재생 URL.
     required String videoUrl,
   }) = _SpotDetailVideoUiModel;
 }

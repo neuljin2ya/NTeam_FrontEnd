@@ -10,14 +10,17 @@ import '../../../../common/difficulty_tag.dart';
 import '../../../../common/obstacle_option_card.dart';
 import '../../../../common/spot_difficulty_mapper.dart';
 import '../../../../common/spot_key_label_mapper.dart';
+import '../../../../common/spot_video_detail_args.dart';
 import '../../../../common/status_action_button.dart';
 import '../../../../common/tag.dart';
 import '../../../../config/theme/app_semantic_colors.dart';
 import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
 import '../../../../router/app_router.dart';
-import '../../../../common/spot_video_detail_args.dart';
+import '../../../../router/route_navigation.dart';
+import '../../../../router/router_location_provider.dart';
 import '../../../spot/domain/entity/spot.dart';
+import '../../../spot/domain/entity/spot_status_list.dart';
 import '../viewmodel/spot_detail_ui_model.dart';
 import '../viewmodel/spot_detail_video_ui_model.dart';
 import '../viewmodel/spot_detail_view_model.dart';
@@ -36,20 +39,61 @@ class SpotDetailPage extends ConsumerStatefulWidget {
 }
 
 class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
+  String get _route => '${SGRoute.spotDetail.route}/${widget.spotId}';
+
+  bool _isChildRoute(String route) {
+    return route == SGRoute.spotVideoDetail.route ||
+        route.startsWith('${SGRoute.uploadVideo.route}/') ||
+        route.startsWith('${SGRoute.spotDetailStatus.route}/') ||
+        route.startsWith('${SGRoute.spotDetailReview.route}/');
+  }
+
+  void _loadSpot({bool refresh = false}) {
+    if (widget.spotId <= 0) {
+      return;
+    }
+
+    unawaited(
+      ref
+          .read(spotDetailViewModelProvider.notifier)
+          .loadSpot(widget.spotId, refresh: refresh),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.spotId > 0) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSpot();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant SpotDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spotId != widget.spotId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(
-          ref.read(spotDetailViewModelProvider.notifier).loadSpot(widget.spotId),
-        );
+        _loadSpot();
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String>(routerLocationProvider, (String? previous, String next) {
+      if (didNavigateToRoute(
+        previous: previous,
+        next: next,
+        route: _route,
+      )) {
+        final bool fromChildRoute =
+            previous != null && _isChildRoute(previous);
+        if (!fromChildRoute) {
+          _loadSpot(refresh: true);
+        }
+      }
+    });
+
     final SpotDetailUiModel ui = ref.watch(spotDetailViewModelProvider);
 
     if (widget.spotId <= 0) {
@@ -92,8 +136,11 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
     final List<String> environmentKeys = spot.features
         .where(SpotKeyLabelMapper.isEnvironmentKey)
         .toList();
-    final List<String> statusLabels =
-        SpotKeyLabelMapper.mapStatusLabels(spot.statusList);
+    final SpotStatusList? latestStatus = spot.latestStatusList;
+    final List<String> statusLabels = latestStatus != null
+        ? SpotKeyLabelMapper.mapStatusLabels(latestStatus.statuses)
+        : <String>[];
+    final String statusDescription = latestStatus?.description ?? '';
 
     return Column(
       children: <Widget>[
@@ -112,6 +159,7 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
                   obstacleKeys: obstacleKeys,
                   environmentKeys: environmentKeys,
                   statusLabels: statusLabels,
+                  statusDescription: statusDescription,
                   videos: ui.videos,
                   isVideosLoading: ui.isVideosLoading,
                   onVideoTap: (int index) => _openSpotVideoDetail(
@@ -120,13 +168,7 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
                     videos: ui.videos,
                     initialIndex: index,
                   ),
-                  onStatusRegistered: () {
-                    unawaited(
-                      ref
-                          .read(spotDetailViewModelProvider.notifier)
-                          .loadSpot(widget.spotId, refresh: true),
-                    );
-                  },
+                  onStatusRegistered: () => _loadSpot(refresh: true),
                   onUploadVideoPressed: () => _openUploadVideo(context),
                 ),
               ),
@@ -334,6 +376,7 @@ class _DetailPanel extends StatelessWidget {
     required this.obstacleKeys,
     required this.environmentKeys,
     required this.statusLabels,
+    required this.statusDescription,
     required this.videos,
     required this.isVideosLoading,
     required this.onVideoTap,
@@ -345,6 +388,7 @@ class _DetailPanel extends StatelessWidget {
   final List<String> obstacleKeys;
   final List<String> environmentKeys;
   final List<String> statusLabels;
+  final String statusDescription;
   final List<SpotDetailVideoUiModel> videos;
   final bool isVideosLoading;
   final void Function(int index) onVideoTap;
@@ -373,7 +417,7 @@ class _DetailPanel extends StatelessWidget {
           _RecentStatusSection(
             spotId: spot.spotId,
             statusLabels: statusLabels,
-            description: spot.description,
+            description: statusDescription,
             onStatusRegistered: onStatusRegistered,
           ),
           const SizedBox(height: 40),

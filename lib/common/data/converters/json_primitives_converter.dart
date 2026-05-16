@@ -37,3 +37,19 @@ class FlexibleIntConverter implements JsonConverter<int, Object?> {
   @override
   Object toJson(int object) => object;
 }
+
+/// JSON 날짜 필드가 없거나 null일 때 epoch를 사용합니다.
+class FlexibleDateTimeConverter implements JsonConverter<DateTime, Object?> {
+  const FlexibleDateTimeConverter();
+
+  @override
+  DateTime fromJson(Object? json) {
+    if (json is String && json.isNotEmpty) {
+      return DateTime.parse(json);
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  @override
+  Object toJson(DateTime object) => object.toIso8601String();
+}

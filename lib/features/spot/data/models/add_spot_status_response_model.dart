@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'spot_status_list_model.dart';
+
 part 'add_spot_status_response_model.freezed.dart';
 part 'add_spot_status_response_model.g.dart';
 
@@ -9,7 +11,7 @@ abstract class AddSpotStatusResponseModel with _$AddSpotStatusResponseModel {
     required bool isSuccess,
     required String code,
     required String message,
-    List<String>? result,
+    SpotStatusListModel? result,
   }) = _AddSpotStatusResponseModel;
 
   factory AddSpotStatusResponseModel.fromJson(Map<String, dynamic> json) =>

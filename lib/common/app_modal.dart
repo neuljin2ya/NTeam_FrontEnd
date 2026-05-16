@@ -110,27 +110,33 @@ class AppModal extends StatelessWidget {
               ),
               if (_hasButton) ...<Widget>[
                 const SizedBox(height: 25),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    if (secondaryButtonText != null)
-                      _ModalButton(
-                        text: secondaryButtonText!,
-                        backgroundColor: secondaryButtonColor,
-                        textColor: buttonTextColor,
-                        onPressed: onSecondaryPressed,
-                      ),
-                    if (secondaryButtonText != null &&
-                        primaryButtonText != null)
-                      const SizedBox(width: 10),
-                    if (primaryButtonText != null)
-                      _ModalButton(
-                        text: primaryButtonText!,
-                        backgroundColor: primaryButtonColor,
-                        textColor: buttonTextColor,
-                        onPressed: onPrimaryPressed,
-                      ),
-                  ],
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: <Widget>[
+                      if (secondaryButtonText != null)
+                        Expanded(
+                          child: _ModalButton(
+                            text: secondaryButtonText!,
+                            backgroundColor: secondaryButtonColor,
+                            textColor: buttonTextColor,
+                            onPressed: onSecondaryPressed,
+                          ),
+                        ),
+                      if (secondaryButtonText != null &&
+                          primaryButtonText != null)
+                        const SizedBox(width: 10),
+                      if (primaryButtonText != null)
+                        Expanded(
+                          child: _ModalButton(
+                            text: primaryButtonText!,
+                            backgroundColor: primaryButtonColor,
+                            textColor: buttonTextColor,
+                            onPressed: onPrimaryPressed,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -243,8 +249,7 @@ class _ModalButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onPressed,
       child: Container(
-        width: 140,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: ShapeDecoration(
           color: backgroundColor,
           shape: RoundedRectangleBorder(
@@ -252,11 +257,16 @@ class _ModalButton extends StatelessWidget {
           ),
         ),
         alignment: Alignment.center,
-        child: Text(
-          text,
-          style: AppTextStyles.buttonMedium.copyWith(
-            color: textColor,
-            decoration: TextDecoration.none,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: AppTextStyles.buttonMedium.copyWith(
+              color: textColor,
+              decoration: TextDecoration.none,
+            ),
           ),
         ),
       ),
