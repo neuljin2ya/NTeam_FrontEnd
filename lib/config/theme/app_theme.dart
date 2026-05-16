@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_semantic_colors.dart';
 import 'figma_colors.dart';
@@ -10,15 +9,17 @@ import 'figma_colors.dart';
 abstract final class AppTheme {
   AppTheme._();
 
+  static ThemeData dark() => light();
+
   static ThemeData light() {
     const ColorScheme colorScheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: FigmaColors.brandPrimary,
-      onPrimary: FigmaColors.brandOnPrimary,
-      secondary: FigmaColors.brandSecondary,
-      onSecondary: FigmaColors.brandOnPrimary,
-      error: FigmaColors.statusError,
-      onError: FigmaColors.brandOnPrimary,
+      brightness: Brightness.dark,
+      primary: FigmaColors.primary100,
+      onPrimary: FigmaColors.black,
+      secondary: FigmaColors.primary500,
+      onSecondary: FigmaColors.white,
+      error: FigmaColors.error,
+      onError: FigmaColors.white,
       surface: AppSemanticColors.backgroundSurface,
       onSurface: AppSemanticColors.textPrimary,
     );
@@ -28,7 +29,16 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppSemanticColors.backgroundPage,
       dividerColor: AppSemanticColors.borderDefault,
-      textTheme: GoogleFonts.nunitoTextTheme(),
+      fontFamily: 'SUIT',
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: AppSemanticColors.textPrimary),
+        bodyMedium: TextStyle(color: AppSemanticColors.textPrimary),
+        bodySmall: TextStyle(color: AppSemanticColors.textSecondary),
+        labelLarge: TextStyle(
+          color: AppSemanticColors.textPrimary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppSemanticColors.backgroundPage,
         foregroundColor: AppSemanticColors.textPrimary,
@@ -36,12 +46,24 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
       ),
       inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppSemanticColors.backgroundElevated,
+        labelStyle: const TextStyle(color: AppSemanticColors.textSecondary),
+        hintStyle: const TextStyle(color: AppSemanticColors.textDisabled),
         border: OutlineInputBorder(
+          borderSide: const BorderSide(color: AppSemanticColors.borderDefault),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: AppSemanticColors.borderDefault),
           borderRadius: BorderRadius.circular(8),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: AppSemanticColors.borderFocus),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: FigmaColors.error),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -50,6 +72,7 @@ abstract final class AppTheme {
           backgroundColor: AppSemanticColors.interactivePrimary,
           foregroundColor: AppSemanticColors.textOnBrand,
           disabledBackgroundColor: AppSemanticColors.interactiveDisabled,
+          disabledForegroundColor: AppSemanticColors.textDisabled,
         ),
       ),
     );
