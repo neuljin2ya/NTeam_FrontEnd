@@ -30,9 +30,11 @@ class SpotDetailPage extends ConsumerStatefulWidget {
   const SpotDetailPage({
     super.key,
     required this.spotId,
+    this.hideSaveButton = false,
   });
 
   final int spotId;
+  final bool hideSaveButton;
 
   @override
   ConsumerState<SpotDetailPage> createState() => _SpotDetailPageState();
@@ -86,8 +88,7 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
         next: next,
         route: _route,
       )) {
-        final bool fromChildRoute =
-            previous != null && _isChildRoute(previous);
+        final bool fromChildRoute = previous != null && _isChildRoute(previous);
         if (!fromChildRoute) {
           _loadSpot(refresh: true);
         }
@@ -130,17 +131,16 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
       return const _SpotDetailMessage(message: '스팟 정보를 찾을 수 없습니다.');
     }
 
-    final List<String> obstacleKeys = spot.features
-        .where(SpotKeyLabelMapper.isObstacleKey)
-        .toList();
-    final List<String> environmentKeys = spot.features
-        .where(SpotKeyLabelMapper.isEnvironmentKey)
-        .toList();
-    final SpotStatusList? latestStatus = spot.latestStatusList;
-    final List<String> statusLabels = latestStatus != null
-        ? SpotKeyLabelMapper.mapStatusLabels(latestStatus.statuses)
-        : <String>[];
-    final String statusDescription = latestStatus?.description ?? '';
+    final List<String> obstacleKeys =
+        spot.features.where(SpotKeyLabelMapper.isObstacleKey).toList();
+    final List<String> environmentKeys =
+        spot.features.where(SpotKeyLabelMapper.isEnvironmentKey).toList();
+    final List<SpotStatusList> sortedStatusList = List<SpotStatusList>.from(
+      spot.statusList,
+    )..sort(
+        (SpotStatusList a, SpotStatusList b) =>
+            b.spotStatusListId.compareTo(a.spotStatusListId),
+      );
 
     return Column(
       children: <Widget>[
@@ -158,8 +158,7 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
                   spot: spot,
                   obstacleKeys: obstacleKeys,
                   environmentKeys: environmentKeys,
-                  statusLabels: statusLabels,
-                  statusDescription: statusDescription,
+                  statusList: sortedStatusList,
                   videos: ui.videos,
                   isVideosLoading: ui.isVideosLoading,
                   onVideoTap: (int index) => _openSpotVideoDetail(
@@ -175,12 +174,12 @@ class _SpotDetailPageState extends ConsumerState<SpotDetailPage> {
             ],
           ),
         ),
-        _BottomSaveArea(
-          isLoading: ui.isSavingSpot,
-          onPressed: ui.isSavingSpot
-              ? null
-              : () => unawaited(_saveSpot(context)),
-        ),
+        if (!widget.hideSaveButton)
+          _BottomSaveArea(
+            isLoading: ui.isSavingSpot,
+            onPressed:
+                ui.isSavingSpot ? null : () => unawaited(_saveSpot(context)),
+          ),
       ],
     );
   }
@@ -375,8 +374,7 @@ class _DetailPanel extends StatelessWidget {
     required this.spot,
     required this.obstacleKeys,
     required this.environmentKeys,
-    required this.statusLabels,
-    required this.statusDescription,
+    required this.statusList,
     required this.videos,
     required this.isVideosLoading,
     required this.onVideoTap,
@@ -387,8 +385,7 @@ class _DetailPanel extends StatelessWidget {
   final Spot spot;
   final List<String> obstacleKeys;
   final List<String> environmentKeys;
-  final List<String> statusLabels;
-  final String statusDescription;
+  final List<SpotStatusList> statusList;
   final List<SpotDetailVideoUiModel> videos;
   final bool isVideosLoading;
   final void Function(int index) onVideoTap;
@@ -416,8 +413,7 @@ class _DetailPanel extends StatelessWidget {
           const SizedBox(height: 40),
           _RecentStatusSection(
             spotId: spot.spotId,
-            statusLabels: statusLabels,
-            description: statusDescription,
+            statusList: statusList,
             onStatusRegistered: onStatusRegistered,
           ),
           const SizedBox(height: 40),
@@ -498,21 +494,19 @@ class _ObstacleSection extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: obstacleKeys
-              .map(
-                (String key) {
-                  final String? svgIcon = SpotKeyLabelMapper.obstacleSvgIcon(key);
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ObstacleOptionCard.selected(
-                      text: SpotKeyLabelMapper.featureLabel(key),
-                      svgIcon: svgIcon,
-                      onPressed: () {},
-                    ),
-                  );
-                },
-              )
-              .toList(),
+          children: obstacleKeys.map(
+            (String key) {
+              final String? svgIcon = SpotKeyLabelMapper.obstacleSvgIcon(key);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ObstacleOptionCard.selected(
+                  text: SpotKeyLabelMapper.featureLabel(key),
+                  svgIcon: svgIcon,
+                  onPressed: () {},
+                ),
+              );
+            },
+          ).toList(),
         ),
       ),
     );
@@ -557,14 +551,12 @@ class _EnvironmentSection extends StatelessWidget {
 class _RecentStatusSection extends StatelessWidget {
   const _RecentStatusSection({
     required this.spotId,
-    required this.statusLabels,
-    required this.description,
+    required this.statusList,
     required this.onStatusRegistered,
   });
 
   final int spotId;
-  final List<String> statusLabels;
-  final String description;
+  final List<SpotStatusList> statusList;
   final VoidCallback onStatusRegistered;
 
   @override
@@ -594,10 +586,20 @@ class _RecentStatusSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if (statusLabels.isNotEmpty || description.isNotEmpty)
-            _StatusCard(
-              statusLabels: statusLabels,
-              description: description,
+          if (statusList.isNotEmpty)
+            Column(
+              children: statusList
+                  .map(
+                    (SpotStatusList status) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _StatusCard(
+                        statusLabels:
+                            SpotKeyLabelMapper.mapStatusLabels(status.statuses),
+                        description: status.description,
+                      ),
+                    ),
+                  )
+                  .toList(),
             )
           else
             Text(

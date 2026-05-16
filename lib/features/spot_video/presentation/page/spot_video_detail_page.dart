@@ -8,7 +8,9 @@ import 'package:video_player/video_player.dart';
 
 import '../../../../common/app_top_bar.dart';
 import '../../../../common/downloaded_file_store.dart';
+import '../../../../common/tag.dart';
 import '../../../../common/spot_video_detail_args.dart';
+import '../../../../config/theme/app_semantic_colors.dart';
 import '../../../../config/theme/app_text_styles.dart';
 import '../../../../config/theme/figma_colors.dart';
 
@@ -414,6 +416,15 @@ class _SpotVideoPageState extends State<_SpotVideoPage> {
 class _VideoMetaContent extends StatelessWidget {
   const _VideoMetaContent({required this.title});
 
+  static const List<String> _dummyTags = <String>[
+    'Kong vault',
+    'Percision',
+    'Cat leap',
+  ];
+
+  static const String _dummyMemo =
+      '#오늘운동 #잘먹었다';
+
   final String title;
 
   @override
@@ -422,15 +433,53 @@ class _VideoMetaContent extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Text(
-      title,
-      maxLines: 3,
-      overflow: TextOverflow.ellipsis,
-      style: AppTextStyles.headlineLarge.copyWith(
-        color: FigmaColors.white,
-        fontSize: 24,
-        height: 1.42,
-        letterSpacing: -0.4,
+    return SizedBox(
+      width: 328,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.headlineLarge.copyWith(
+              color: FigmaColors.white,
+              fontSize: 24,
+              height: 1.42,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: <Widget>[
+              for (final String tagText in _dummyTags)
+                Tag(
+                  text: tagText,
+                  backgroundColor: FigmaColors.primary600,
+                  textColor: FigmaColors.primary50,
+                  borderRadius: 16,
+                  fontWeight: FontWeight.w400,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _dummyMemo,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.labelLarge.copyWith(
+              color: AppSemanticColors.textSecondary,
+              letterSpacing: -0.16,
+            ),
+          ),
+        ],
       ),
     );
   }
