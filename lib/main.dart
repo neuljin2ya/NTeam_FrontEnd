@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -11,7 +10,6 @@ import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
 import 'constants/strings.dart';
 import 'flavors/app_flavor.dart';
-import 'hive/hive.dart';
 import 'my_app.dart';
 
 /// Try using const constructors as much as possible!
@@ -24,8 +22,6 @@ Future<void> main() async {
 Future<void> bootstrap() async {
   /// Initialize packages
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
-  await initHive();
   await setPreferredOrientations();
   if (!kIsWeb) {
     if (Platform.isAndroid) {
@@ -42,17 +38,8 @@ Future<void> bootstrap() async {
   }
 
   runApp(
-    ProviderScope(
-      child: EasyLocalization(
-        supportedLocales: const <Locale>[
-          /// Add your supported locales here
-          Locale('en'),
-          Locale('tr'),
-        ],
-        path: Strings.localizationsPath,
-        fallbackLocale: const Locale('en'),
-        child: const MyApp(),
-      ),
+    const ProviderScope(
+      child: MyApp()
     ),
   );
 
