@@ -1,10 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:parkou_route/common/difficulty_tag.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../common/difficulty_tag.dart';
 import '../../../../config/theme/app_semantic_colors.dart';
 import '../../../../config/theme/figma_colors.dart';
+import '../../../../router/app_router.dart';
 import 'home_spot_card_widget.dart';
 
 class HomeBottomSheetWidget extends StatelessWidget {
@@ -64,7 +66,10 @@ class HomeBottomSheetWidget extends StatelessWidget {
                           address: spot.address,
                           difficulty: spot.difficulty,
                           statusTags: spot.statusTags,
-                          onTap: () {},
+                          onTap: () {
+                            // TODO: 실제 spot id를 path/query/extra로 전달해 상세 API 조회에 사용.
+                            context.push(SGRoute.spotDetail.route);
+                          },
                         );
                       },
                     ),

@@ -8,6 +8,7 @@ import '../dev/dev_page.dart';
 import '../features/home/presentation/page/home_page.dart';
 import '../features/load/presentation/page/load_page.dart';
 import '../features/login/presentation/page/login_page.dart';
+import '../features/spot_detail/presentation/page/spot_detail_page.dart';
 
 part 'app_router.g.dart';
 
@@ -16,6 +17,7 @@ enum SGRoute {
   dev,
   home,
   login,
+  spotDetail,
   register,
   forgotPassword,
   profile,
@@ -41,6 +43,11 @@ GoRouter goRouter(Ref ref) => GoRouter(
     GoRoute(
       path: SGRoute.home.route,
       builder: (BuildContext context, GoRouterState state) => const HomePage(),
+    ),
+    GoRoute(
+      path: SGRoute.spotDetail.route,
+      builder: (BuildContext context, GoRouterState state) =>
+      const SpotDetailPage(),
     ),
     GoRoute(path: SGRoute.dev.route, builder: (BuildContext context, GoRouterState state) => const DevPage()),
   ],
