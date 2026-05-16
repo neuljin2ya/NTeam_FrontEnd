@@ -18,22 +18,22 @@ class FlavorConfig {
   static String get appName {
     switch (_flavor) {
       case AppFlavor.dev:
-        return 'Temp Dev';
+        return 'Parkouroute Dev';
       case AppFlavor.staging:
-        return 'Temp Staging';
+        return 'Parkouroute Staging';
       case AppFlavor.prod:
-        return 'Temp';
+        return 'Parkouroute';
     }
   }
 
   static String get bundleId {
     switch (_flavor) {
       case AppFlavor.dev:
-        return 'com.example.temp.dev';
+        return 'com.neordinary.parkouroute.dev';
       case AppFlavor.staging:
-        return 'com.example.temp.staging';
+        return 'com.neordinary.parkouroute.staging';
       case AppFlavor.prod:
-        return 'com.example.temp';
+        return 'com.neordinary.parkouroute';
     }
   }
 }
