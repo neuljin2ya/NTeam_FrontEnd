@@ -90,3 +90,6 @@ yarn.lock
 
 #fvm
 .fvm/
+
+#.env
+.env

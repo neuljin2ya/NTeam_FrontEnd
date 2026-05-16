@@ -1,4 +1,4 @@
-package com.example.temp
+package com.neordinary.parkouroute
 
 import io.flutter.embedding.android.FlutterActivity
 

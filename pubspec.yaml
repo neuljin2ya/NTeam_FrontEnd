@@ -54,7 +54,9 @@ dependencies:
   riverpod: ^3.2.1
   riverpod_annotation: ^4.0.2
   freezed_annotation: ^3.1.0
-
+  flutter_naver_map: ^1.4.4
+  flutter_dotenv: ^6.0.1
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
@@ -87,20 +89,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/translations/
+    - .env
     - assets/img/
 
-  fonts:
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Nunito-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Nunito-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Nunito-Light.ttf
-          weight: 300
+#  fonts:
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

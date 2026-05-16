@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../dev/dev_page.dart';
+import '../features/load/presentation/page/load_page.dart';
+
 part 'app_router.g.dart';
 
 enum SGRoute {
+  load,
+  dev,
   home,
   login,
   register,
@@ -21,8 +26,12 @@ enum SGRoute {
 
 @riverpod
 GoRouter goRouter(Ref ref) => GoRouter(
-  initialLocation: SGRoute.login.route,
+  initialLocation: SGRoute.load.route,
   routes: <GoRoute>[
-    // TODO: 화면 생성 시 Route 경로 작성
+    GoRoute(
+      path: SGRoute.load.route,
+      builder: (BuildContext context, GoRouterState state) => const LoadPage(),
+    ),
+    GoRoute(path: SGRoute.dev.route, builder: (BuildContext context, GoRouterState state) => const DevPage()),
   ],
 );

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'flavors/app_flavor.dart';
+import 'constants/strings.dart';
 import 'router/app_router.dart';
 
 class MyApp extends ConsumerWidget {
@@ -18,7 +18,7 @@ class MyApp extends ConsumerWidget {
       routerConfig: router,
 
       /// Localization is not available for the title.
-      title: FlavorConfig.appName,
+      title: Strings.appName,
 
       // Theme config for FlexColorScheme version 7.2.x. Make sure you use
       // same or higher package version, but still same major version. If you
