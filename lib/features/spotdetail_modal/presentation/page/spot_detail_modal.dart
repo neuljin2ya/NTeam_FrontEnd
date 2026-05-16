@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../common/app_top_bar.dart';
 import '../../../../config/theme/figma_colors.dart';
 
-class SpotDetailModal extends StatefulWidget {
-  const SpotDetailModal({
+class SpotDetailStatusPage extends StatefulWidget {
+  const SpotDetailStatusPage({
     super.key,
     this.onBackPressed,
     this.onSubmit,
@@ -16,10 +16,10 @@ class SpotDetailModal extends StatefulWidget {
   final ValueChanged<List<String>>? onSubmit;
 
   @override
-  State<SpotDetailModal> createState() => _SpotDetailModalState();
+  State<SpotDetailStatusPage> createState() => _SpotDetailStatusPageState();
 }
 
-class _SpotDetailModalState extends State<SpotDetailModal> {
+class _SpotDetailStatusPageState extends State<SpotDetailStatusPage> {
   static const int _maxSelectionCount = 6;
 
   final Set<String> _selectedOptionIds = <String>{};
@@ -98,19 +98,12 @@ class _SpotDetailModalState extends State<SpotDetailModal> {
 
   @override
   Widget build(BuildContext context) {
-    final double maxHeight = MediaQuery.sizeOf(context).height * 0.95;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: FigmaColors.black,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+    return Scaffold(
+      backgroundColor: FigmaColors.black,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(color: FigmaColors.black),
         child: SafeArea(
-          top: false,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               AppTopBar(
                 title: '최근 스팟 상태',
@@ -151,6 +144,9 @@ class _SpotDetailModalState extends State<SpotDetailModal> {
     );
   }
 }
+
+@Deprecated('Use SpotDetailStatusPage instead.')
+typedef SpotDetailModal = SpotDetailStatusPage;
 
 class _ModalHeader extends StatelessWidget {
   const _ModalHeader();

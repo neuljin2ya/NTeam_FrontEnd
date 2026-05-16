@@ -8,19 +8,23 @@ import '../dev/dev_page.dart';
 import '../features/home/presentation/page/home_page.dart';
 import '../features/load/presentation/page/load_page.dart';
 import '../features/login/presentation/page/login_page.dart';
+import '../features/onboarding/presentation/page/onboarding_page.dart';
 import '../features/spot_detail/presentation/page/spot_detail_page.dart';
 import '../features/spot_video/presentation/page/spot_video_detail_page.dart';
+import '../features/spotdetail_modal/presentation/page/spot_detail_modal.dart';
 import '../features/spotdetail_modal/presentation/page/spot_detail_review_page.dart';
 import '../features/upload_video/presentation/page/upload_video_page.dart';
 
 part 'app_router.g.dart';
 
 enum SGRoute {
+  onboarding,
   load,
   dev,
   home,
   login,
   spotDetail,
+  spotDetailStatus,
   spotDetailReview,
   spotVideoDetail,
   uploadVideo,
@@ -36,8 +40,14 @@ enum SGRoute {
 
 @riverpod
 GoRouter goRouter(Ref ref) => GoRouter(
-      initialLocation: SGRoute.load.route,
+      initialLocation: SGRoute.onboarding.route,
+      overridePlatformDefaultLocation: true,
       routes: <GoRoute>[
+        GoRoute(
+          path: SGRoute.onboarding.route,
+          builder: (BuildContext context, GoRouterState state) =>
+              const OnboardingPage(),
+        ),
         GoRoute(
           path: SGRoute.load.route,
           builder: (BuildContext context, GoRouterState state) =>
@@ -57,6 +67,19 @@ GoRouter goRouter(Ref ref) => GoRouter(
           path: SGRoute.spotDetail.route,
           builder: (BuildContext context, GoRouterState state) =>
               const SpotDetailPage(),
+        ),
+        GoRoute(
+          path: SGRoute.spotDetailStatus.route,
+          builder: (BuildContext context, GoRouterState state) {
+            return SpotDetailStatusPage(
+              onSubmit: (List<String> selectedStatusIds) {
+                context.push(
+                  SGRoute.spotDetailReview.route,
+                  extra: selectedStatusIds,
+                );
+              },
+            );
+          },
         ),
         GoRoute(
           path: SGRoute.spotDetailReview.route,
