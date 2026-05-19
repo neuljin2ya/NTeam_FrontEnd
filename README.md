@@ -17,16 +17,6 @@
 파쿠루트는 이러한 문제를 해결하기 위해 파쿠르 스팟을 탐색하고 기록하며 함께 공유할 수 있도록 만든 위치 기반 커뮤니티 플랫폼입니다.
 </p>
 
-<h2>🔗 관련 링크</h2>
-
-<ul>
-  <li>
-    <a href="https://www.figma.com/design/Tx9q3jZXEP5nzebO5TEVfW/N조-해커톤?node-id=170-4273&t=pRbswB4Vh993Vw1d-1">
-      Figma
-    </a>
-  </li>
-</ul>
-
 <h2>👤 사용자 기능</h2>
 
 <h3>📍 스팟 탐색</h3>
