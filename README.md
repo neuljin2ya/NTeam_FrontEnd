@@ -1,201 +1,60 @@
-[![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)
-# Flutter Riverpod Template - 2025 Edition
+<h1>파쿠루트</h1>
+<p>도심 속 파쿠르 스팟을 탐색하고 기록하는 위치 기반 커뮤니티 플랫폼</p>
 
-## Modern Flutter Architecture Template with Riverpod
+<h2>프로젝트 소개</h2>
+<p>
+파쿠루트는 10th Neordinary Hackathon에서 비주류 + 스포츠를 주제로 진행한 프로젝트입니다.<br>
+국내 파쿠르는 훈련 공간과 정보 인프라가 부족해 유저들이 직접 발품을 팔아 스팟을 찾아야 하는 상황입니다.<br>
+또한 장소의 난이도, 장애물 유형, 바닥 환경, 현재 상태를 미리 알기 어려워 입문자에게는 안전한 시작이 쉽지 않다는 문제가 있었습니다.<br>
+파쿠루트는 이러한 문제를 해결하기 위해 파쿠르 스팟을 탐색하고 기록하며 함께 공유할 수 있도록 만든 위치 기반 커뮤니티 플랫폼입니다.
+</p>
 
-A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.32 and above. This template implements clean architecture principles and provides a robust foundation for building scalable applications.
+<h2>👤 사용자 기능</h2>
 
----
+<h3>📍 스팟 탐색</h3>
+<ul>
+  <li>지역 기반 파쿠르 스팟 검색</li>
+  <li>지도 기반 스팟 탐색 UI 제공</li>
+  <li>스팟 상세 정보 확인</li>
+</ul>
 
-### Key Features
+<h3>🧗 스팟 정보 기록</h3>
+<ul>
+  <li>난이도 설정</li>
+  <li>장애물 유형 및 공간 환경 등록</li>
+  <li>대표 이미지 및 주소 정보 저장</li>
+</ul>
 
-- 🏗️ Clean Architecture with Domain-Driven Design
-- 🎯 Riverpod 2.6+ with code generation
-- 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256)
-- 🌐 Type-safe API integration with Dio 5.8+
-- 📱 Responsive UI with adaptive widgets
-- 🌍 Internationalization ready with Easy Localization
-- 💾 Secure local storage with Hive CE
-- 🧪 Pre-configured unit testing for authentication and controller logic
-- ⚡ Modern navigation with GoRouter 14.8+
-- 🛠️ Custom linting and devtools configuration
+<h3>📝 실시간 상태 공유</h3>
+<ul>
+  <li>현재 스팟 상태 기록</li>
+  <li>한 줄 후기 작성</li>
+  <li>혼잡도 및 훈련 환경 공유</li>
+</ul>
 
----
+<h3>🎥 영상 업로드</h3>
+<ul>
+  <li>스팟에서 촬영한 영상 업로드</li>
+  <li>기술 태그 등록 기능</li>
+  <li>영상 기반 스팟 정보 공유</li>
+</ul>
 
-## Tech Stack
+<h3>⭐ 나만의 스팟 저장</h3>
+<ul>
+  <li>관심 스팟 저장 기능</li>
+  <li>저장한 스팟 목록 관리</li>
+</ul>
 
-**Core Libraries:**
-- State Management: Riverpod 2.6.1, Freezed 3.0.6 (immutable state)
-- Network Layer: Dio 5.8.0, FPDart 1.1.0 for functional error handling
-- Local Storage: Hive CE 2.11.1 with AES-256 encryption
-- UI & Navigation: GoRouter 14.8.0, Google Fonts 6.2.1, Material 3
+<h2>🖼️ UI 미리보기</h2>
 
-**Developer Tools:**
-- Flutter Lints 5.0.0
-- Build Runner, code generation
-- Custom linting rules (`lint_rules.yaml`)
-- Dart & Flutter DevTools support
+<h3>온보딩</h3>
+<img src="image/onboarding.jpg" width="700" />
 
----
+<h3>스팟 탐색</h3>
+<img src="image/explore.jpg" width="700" />
 
-## Project Structure
+<h3>스팟 상세 & 상태 공유</h3>
+<img src="image/detail.jpg" width="700" />
 
-```
-lib/
-├── common/            # Shared widgets and components
-├── config/            # App configuration (theme etc.)
-├── constants/         # App-wide constants (endpoints, assets)
-├── core/              # Core functionality, network layer
-├── features/          # Feature modules (authentication, home, ...)
-│   └── authentication/
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
-├── hive/              # Local storage setup and adapters
-├── router/            # Navigation & routing
-├── utils/             # Utility functions
-├── main.dart          # App entry point
-└── my_app.dart        # App configuration
-```
-
----
-
-## Getting Started
-
-
-### Setup
-
-1. **Clone the template:**
-    ```bash
-    git clone https://github.com/Erengun/Flutter-Riverpod-2.0-Template.git my_app
-    cd my_app
-    ```
-
-2. **Install dependencies:**
-    ```bash
-    flutter pub get
-    ```
-
-3. **Generate code:**
-    ```bash
-    dart run build_runner build --delete-conflicting-outputs
-    ```
-
-4. **Setup environment:**
-    ```bash
-    cp .env.example .env
-    ```
-
-5. **Run the app:**
-    ```bash
-    flutter run --flavor prod -t lib/main_prod.dart
-    ```
-
----
-
-## Flavors (app names & package IDs)
-
-This template ships with dev, staging, and prod flavors for Android and iOS.
-
-### Run commands
-
-- Dev:
-    ```bash
-    flutter run --flavor dev -t lib/main_dev.dart
-    ```
-- Staging:
-    ```bash
-    flutter run --flavor staging -t lib/main_staging.dart
-    ```
-- Prod:
-    ```bash
-    flutter run --flavor prod -t lib/main_prod.dart
-    ```
-
-### Customize names and IDs
-
-- Android flavor names and applicationId suffixes: [android/app/build.gradle.kts](android/app/build.gradle.kts)
-- iOS bundle IDs and display names: [ios/Flutter/Debug-dev.xcconfig](ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
-- Dart-side flavor labels: [lib/flavors/app_flavor.dart](lib/flavors/app_flavor.dart)
-
----
-
-## Authentication Module
-
-The template includes a complete authentication system with secure credential storage and error handling.
-
-### How it works
-
-- **Login & Registration:** Uses Dio to POST to `/api/login` and `/api/register` endpoints.
-- **Credential Caching:** Credentials are securely cached in Hive CE using AES-256 encryption, with key derived per-device.
-- **State Management:** All authentication UI and logic is managed via Riverpod notifiers and state classes.
-- **Error Handling:** All network and validation errors are surfaced in the UI.
-- **Loading State:** UI reflects loading and error states for a smooth UX.
-
-### Test Credentials
-
-You can test the authentication functionality using these credentials from [reqres.in](https://reqres.in/):
-
-**Login:**
-```json
-{
-    "email": "eve.holt@reqres.in",
-    "password": "cityslicka"
-}
-```
-
-**Register:**
-```json
-{
-    "email": "eve.holt@reqres.in",
-    "password": "pistol"
-}
-```
-
-**Example:**
-```dart
-@riverpod
-class LoginController extends _$LoginController {
-  // ... state and logic here
-  Future<LoginResponse> login({required String email, required String password}) async {
-    // Handles login, error handling, caching, loading state etc.
-  }
-}
-```
----
-
-## Testing
-
-- Integrated tests for auth controller logic (`test/features/login_controller_test.dart`)
-- Run tests with:
-    ```bash
-    flutter test
-    ```
-
----
-
-## Documentation
-
-- Up-to-date documentation in this README
-- Code comments and examples throughout
-
----
-
-## Contributing
-
-See our [Contributing Guide](CONTRIBUTING.md) for details on how to:
-- Set up your development environment
-- Run tests
-- Submit pull requests
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Contact
-
-- [https://www.erengun.dev](https://www.erengun.dev)
+<h3>영상 업로드</h3>
+<img src="image/video.jpg" width="700" />
